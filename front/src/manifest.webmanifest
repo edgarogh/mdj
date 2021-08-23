@@ -1,0 +1,14 @@
+{
+  "short_name": "MdJ",
+  "name": "Méthode des J",
+  "start_url": "/",
+  "display": "standalone",
+  "scope": "/",
+  "shortcuts": [
+    {
+      "name": "Voir les cours",
+      "short_name": "Cours",
+      "url": "/courses"
+    }
+  ]
+}

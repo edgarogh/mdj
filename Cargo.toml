@@ -1,0 +1,17 @@
+[package]
+name = "mdj"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+bcrypt = "0.10.1"
+chrono = { version = "0.4.19", features = ["serde"] }
+diesel = { version = "1.4.7", features = ["postgres", "chrono", "uuidv07"] }
+diesel_migrations = "1.4.0"
+icalendar = "0.10.0"
+include_dir = "0.6.1"
+rand = "0.8.4"
+rocket = { version = "0.5.0-rc.1", features = ["json", "serde_json", "uuid", "secrets"] }
+rocket_sync_db_pools = { version = "0.1.0-rc.1", features = ["diesel_postgres_pool"] }
+serde = { version = "1.0", features = ["derive"] }
+uuid = { version = "0.8.2", features = ["v4"] }
