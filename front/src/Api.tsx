@@ -1,4 +1,4 @@
-import {createContext, ReactChildren, useContext, useMemo, useState} from "react";
+import React, {createContext, ReactChildren, ReactNode, useContext, useMemo, useState} from "react";
 
 export interface AccountInfo {
     id?: string;
@@ -91,6 +91,8 @@ export default function Api(props: ApiProps) {
                     localEvent.marking = mark;
                     setTimeline(timeline);
                 }
+
+                setTimeline(timeline && [...timeline]);
 
                 await fetch(ENDPOINTS.courses_id + course + '/events/' + j, {
                     method: 'PUT',

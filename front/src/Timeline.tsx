@@ -2,7 +2,7 @@ import {makeStyles} from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import Title from "./Title";
 import Skeleton from "@material-ui/lab/Skeleton";
-import {useMemo} from "react";
+import React, {useMemo} from "react";
 import {useApi, Event} from "./Api";
 import EventView from "./EventView";
 import {tzOffset} from "./utils";
@@ -30,6 +30,8 @@ const CATEGORY_SKELETON: Record<CategoryName, [number, number]> = {
 function Category({ name, events }: { name: CategoryName, events: Event[] | undefined }) {
     const classes = useStyles();
 
+    const isToday = name === 'today';
+
     let eventComponents;
     if (!events) {
         eventComponents = Array(CATEGORY_SKELETON[name][0])
@@ -37,7 +39,7 @@ function Category({ name, events }: { name: CategoryName, events: Event[] | unde
             .map((_, idx) => <EventView key={idx} event={undefined}/>);
     } else {
         eventComponents = events.map((e) => (
-            <EventView key={e.course.id + '/' + e.j} event={e}/>
+            <EventView key={e.course.id + '/' + e.j} event={e} hideDate={isToday}/>
         ));
     }
 

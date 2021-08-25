@@ -21,9 +21,15 @@ const useStyles = makeStyles((theme) => ({
             flexBasis: '33.33%',
             flexShrink: 0,
     },
+    summary: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
     secondaryHeading: {
         fontSize: theme.typography.pxToRem(15),
-            color: theme.palette.text.secondary,
+        color: theme.palette.text.secondary,
     },
     markSelect: {
         width: '100%',
@@ -31,20 +37,31 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export interface EventViewProps {
+    hideDate?: boolean;
     event: Event | undefined;
 }
 
-export default function EventView({ event }: EventViewProps) {
+export default function EventView({ hideDate, event }: EventViewProps) {
     const classes = useStyles();
     const [expanded, setExpanded] = useState(false);
 
+    const started = event?.marking === 'started';
+    const furtherLearningRequired = event?.marking === 'further_learning_required';
+    const done = event?.marking === 'done';
+
     return (
         <Accordion className={!event ? classes.skeleton : ''} expanded={!!event && expanded} onChange={(_, e) => setExpanded(e)}>
-            <AccordionSummary expandIcon={event && <ExpandMoreIcon />}>
-                {event ? <>
-                    <Typography className={classes.heading}>{event.course.name}</Typography>
-                    <Typography className={classes.secondaryHeading}>{formatDate(event.date)}</Typography>
-                </> : (
+            <AccordionSummary className={classes.summary} expandIcon={event && <ExpandMoreIcon />}>
+                {event ? <div className={classes.summary}>
+                    <Typography style={{ textDecoration: done ? 'line-through' : 'inherit' }} className={classes.heading}>
+                        {event.course.name}
+                        {started && '*'}
+                        {furtherLearningRequired && '?'}
+                    </Typography>
+                    <Typography className={classes.secondaryHeading}>
+                        {!hideDate && formatDate(event.date)}
+                    </Typography>
+                </div> : (
                     <Skeleton width="33%"/>
                 )}
             </AccordionSummary>
