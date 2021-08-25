@@ -1,13 +1,14 @@
 import {makeStyles} from "@material-ui/core";
-import IconButton from "@material-ui/core/IconButton";
 import Button from "@material-ui/core/Button";
+import IconButton from "@material-ui/core/IconButton";
 import Paper from "@material-ui/core/Paper";
+import Snackbar from "@material-ui/core/Snackbar";
 import Typography from "@material-ui/core/Typography";
-import FileCopyIcon from "@material-ui/icons/FileCopy";
 import ExitToApp from "@material-ui/icons/ExitToApp";
+import FileCopyIcon from "@material-ui/icons/FileCopy";
 import Skeleton from "@material-ui/lab/Skeleton";
-import copy from 'copy-to-clipboard';
-import {useCallback, useMemo} from "react";
+import copy from "copy-to-clipboard";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {useApi} from "./Api";
 
 const useStyles = makeStyles({
@@ -23,6 +24,7 @@ const useStyles = makeStyles({
         flexDirection: 'row',
     },
     linkButton: {
+        marginRight: '8px',
         flex: 1,
         fontFamily: 'monospace',
         textTransform: 'none',
@@ -36,6 +38,7 @@ const useStyles = makeStyles({
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'end',
+        margin: '0 8px',
     },
 });
 
@@ -44,19 +47,32 @@ export default function Settings() {
     const { accountInfo: { id: accountId } } = useApi();
 
     const icalUrl = useMemo(() => (
-        accountId ? ("webcal://127.0.0.1:8000/ical/" + accountId) : undefined
+        accountId ? (`${location.protocol}//${location.host}` + "/ical/" + accountId) : undefined
     ), [accountId]);
+
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarTimeout, setSnackbarTimeout] = useState<number | undefined>(undefined);
+
+    useEffect(() => () => {
+        if (snackbarTimeout) clearTimeout(snackbarTimeout);
+    }, [snackbarTimeout]);
 
     const doCopy = useCallback(() => {
         copy(icalUrl!!);
-    }, [icalUrl]);
+        setSnackbarOpen(true);
+        if (snackbarTimeout) clearTimeout(snackbarTimeout);
+        setSnackbarTimeout(setTimeout(() => {
+            setSnackbarTimeout(undefined);
+            setSnackbarOpen(false);
+        }, 2000));
+    }, [icalUrl, snackbarTimeout]);
 
     return (
         <div style={{ paddingTop: '8px' }}>
             <Paper className={classes.paper}>
                 <Typography component="h2">Importer dans un calendrier</Typography>
                 <div className={classes.paperInner}>
-                    <Button disabled={!icalUrl} className={classes.linkButton} variant="outlined" href={icalUrl}>
+                    <Button disabled={!icalUrl} className={classes.linkButton} variant="outlined" onClick={doCopy}>
                         {icalUrl ? (
                             icalUrl
                         ): (
@@ -66,6 +82,10 @@ export default function Settings() {
                     <IconButton disabled={!icalUrl} onClick={doCopy}>
                         <FileCopyIcon/>
                     </IconButton>
+                    <Snackbar
+                        open={snackbarOpen}
+                        message="URL copié"
+                    />
                 </div>
             </Paper>
             <div className={classes.disconnectButtonContainer}>
