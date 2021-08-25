@@ -76,13 +76,13 @@ export default function CourseEdit() {
         </Button>
         <Card style={{ margin: '0 8px 8px 8px' }}>
             <CardContent>
-                <TextField label="Nom" value={name} onChange={(e) => setName(e.target.value)}/>
-                <TextField label="Description" value={description} onChange={(e) => setDescription(e.target.value)}/>
+                <TextField label={"Nom"} value={name} onChange={(e) => setName(e.target.value)}/>
+                <TextField label={"Description"} value={description} onChange={(e) => setDescription(e.target.value)}/>
                 <div>
-                    <TextField label="Jour 0" type="date" value={j0} onChange={(e) => setJ0(e.target.value)}/>{/** TODO **/}
-                    <TextField label="Jour de fin" type="date" value={jEnd} onChange={(e) => setJEnd(e.target.value)}/>{/** TODO **/}
+                    <TextField label={"Jour 0"} type="date" value={j0} onChange={(e) => setJ0(e.target.value)}/>{/** TODO **/}
+                    <TextField label={"Jour de fin"} type="date" value={jEnd} onChange={(e) => setJEnd(e.target.value)}/>{/** TODO **/}
                 </div>
-                <TextField label="Jours de récurrence" error={!recurrenceValid} placeholder="0,1,3,7,14,21" value={recurrence} onChange={(e) => setRecurrence(e.target.value)}/>{/** TODO **/}
+                <TextField label={"Jours de récurrence"} error={!recurrenceValid} placeholder="0,1,3,7,14,21" value={recurrence} onChange={(e) => setRecurrence(e.target.value)}/>{/** TODO **/}
             </CardContent>
         </Card>
         <WithBottomButton label={isNew ? "Créer le cours" : "Enregistrer"} onClick={submit}/>

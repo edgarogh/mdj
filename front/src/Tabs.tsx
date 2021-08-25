@@ -44,9 +44,9 @@ export default function Tabs() {
             showLabels
             className={classes.root}
         >
-            <BottomNavigationAction label="Fil" icon={<CalendarViewDayRoundedIcon />} value="/" to="/" component={Link} />
-            <BottomNavigationAction label="Cours" icon={<LessonsIcon />} value="/courses" to="/courses" component={Link} />
-            <BottomNavigationAction label="Paramètres" icon={<SettingsIcon />} value="/settings" to="/settings" component={Link} />
+            <BottomNavigationAction label={"Fil"} icon={<CalendarViewDayRoundedIcon />} value="/" to="/" component={Link} />
+            <BottomNavigationAction label={"Cours"} icon={<LessonsIcon />} value="/courses" to="/courses" component={Link} />
+            <BottomNavigationAction label={"Paramètres"} icon={<SettingsIcon />} value="/settings" to="/settings" component={Link} />
         </BottomNavigation>
     );
 }

@@ -84,7 +84,7 @@ export default function Settings() {
                     </IconButton>
                     <Snackbar
                         open={snackbarOpen}
-                        message="URL copié"
+                        message={"URL copié"}
                     />
                 </div>
             </Paper>
