@@ -3,7 +3,7 @@ import React, {createContext, ReactChildren, ReactNode, useContext, useMemo, use
 export interface AccountInfo {
     id?: string;
     email?: string;
-    recurrences: string[];
+    recurrences: number[][];
 }
 
 export interface Event {
