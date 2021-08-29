@@ -19,7 +19,7 @@ use icalendar::{Calendar, Component};
 use rand::Rng;
 use rocket::fairing::AdHoc;
 use rocket::form::{Form, FromForm};
-use rocket::http::{ContentType, Cookie, CookieJar, Status};
+use rocket::http::{ContentType, Cookie, CookieJar, SameSite, Status};
 use rocket::outcome::try_outcome;
 use rocket::outcome::IntoOutcome;
 use rocket::request::{FromRequest, Outcome};
@@ -226,7 +226,11 @@ async fn login(
 
         match session {
             Ok(session) => {
-                cookies.add_private(Cookie::new(COOKIE_SESSION_NAME, session));
+                cookies.add_private(
+                    Cookie::build(COOKIE_SESSION_NAME, session)
+                        .same_site(SameSite::Strict)
+                        .finish(),
+                );
                 Ok(Redirect::to("/"))
             }
             Err(err) => Err(format!("Database error while inserting token: {}", err)),
@@ -236,7 +240,6 @@ async fn login(
     }
 }
 
-// TODO CSRF
 #[post("/logout")]
 fn logout(cookies: &CookieJar) {
     cookies.remove_private(Cookie::named(COOKIE_SESSION_NAME));
