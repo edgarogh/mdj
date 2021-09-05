@@ -792,6 +792,7 @@ dependencies = [
  "rocket",
  "rocket_sync_db_pools",
  "serde",
+ "try-block",
  "uuid",
 ]
 
@@ -1642,6 +1643,12 @@ checksum = "2ca517f43f0fb96e0c3072ed5c275fe5eece87e8cb52f4a77b69226d3b1c9df8"
 dependencies = [
  "lazy_static",
 ]
+
+[[package]]
+name = "try-block"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f568ed684112efae02e996f1320d284bacea7a106e3383a22b3ea198d8f2b11c"
 
 [[package]]
 name = "try-lock"

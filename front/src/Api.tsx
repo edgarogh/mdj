@@ -7,7 +7,7 @@ export interface AccountInfo {
 }
 
 export interface Event {
-    course: Course,
+    course: Course;
     j: number;
     marking: string;
     date: string;
@@ -20,6 +20,8 @@ export interface Course {
     j_0: string;
     j_end: string;
     recurrence: string;
+
+    occurrences: [string, string][];
 }
 
 export interface Api {
@@ -111,16 +113,16 @@ export default function Api(props: ApiProps) {
                 }
 
                 if (newCourse.id) {
-                    console.debug(newCourse);
-                    const course = courses.find((c) => c.id === newCourse.id);
+                    const course = courses.find((c) => c.id === newCourse.id)!!;
                     course.name = newCourse.name;
                     course.description = newCourse.description;
                     course.j_0 = newCourse.j_0;
                     course.j_end = newCourse.j_end;
                     course.recurrence = newCourse.recurrence;
+                    course.occurrences = [[course.j_0, ""]];
 
                     courses.sort((a, b) => (new Date(a.j_0) - new Date(b.j_0)));
-                    setCourses(courses);
+                    setCourses([...courses]);
 
                     await fetch(ENDPOINTS.courses_id + newCourse.id, {
                         method: 'PUT',
@@ -131,7 +133,7 @@ export default function Api(props: ApiProps) {
                             j_end: newCourse.j_end,
                             recurrence: newCourse.recurrence,
                         }),
-                    }).then(res => res.text()).then(() => value.fetchTimeline());
+                    }).then(res => res.json()).then(() => Promise.all([value.fetchCourses(), value.fetchTimeline()]));
                 } else {
                     const course = {
                         id: undefined as (string | undefined),
@@ -140,6 +142,7 @@ export default function Api(props: ApiProps) {
                         j_0: newCourse.j_0,
                         j_end: newCourse.j_end,
                         recurrence: newCourse.recurrence,
+                        occurrences: [[newCourse.j_0, ""]],
                     };
 
                     const body = JSON.stringify(course);
@@ -148,7 +151,7 @@ export default function Api(props: ApiProps) {
 
                     courses.push(course as Course);
                     courses.sort((a, b) => (new Date(a.j_0) - new Date(b.j_0)));
-                    setCourses(courses);
+                    setCourses([...courses]);
 
                     const inserted = await fetch(ENDPOINTS.courses, {
                         method: 'POST',
@@ -159,6 +162,7 @@ export default function Api(props: ApiProps) {
                     }).then(res => res.json());
 
                     course.id = inserted.id;
+                    course.occurrences = inserted.occurrences;
 
                     await value.fetchTimeline();
                 }

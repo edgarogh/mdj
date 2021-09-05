@@ -4,6 +4,8 @@ extern crate diesel;
 extern crate diesel_migrations;
 #[macro_use]
 extern crate rocket;
+#[macro_use]
+extern crate try_block;
 
 mod api_result;
 mod asset;
@@ -273,12 +275,61 @@ pub struct Course {
     cache_key: Uuid,
 }
 
-#[get("/api/courses")]
-async fn courses(db: DbConn, a: Account) -> ApiResult<Vec<Course>> {
-    let courses = with_db!(db => {
-        use schema::courses::dsl;
+#[derive(serde::Serialize)]
+pub struct CourseAndOccurrences {
+    id: Uuid,
+    author: Uuid,
+    name: String,
+    description: Option<String>,
+    j_0: NaiveDate,
+    j_end: NaiveDate,
+    recurrence: String,
+    cache_key: Uuid,
 
-        dsl::courses.order_by(dsl::j_0.asc()).filter(dsl::owner.eq(a.id)).load::<Course>(db)
+    occurrences: Vec<(NaiveDate, Option<String>)>,
+}
+
+impl From<(Course, Vec<(NaiveDate, Option<String>)>)> for CourseAndOccurrences {
+    fn from((c, occurrences): (Course, Vec<(NaiveDate, Option<String>)>)) -> Self {
+        Self {
+            id: c.id,
+            author: c.id,
+            name: c.name,
+            description: c.description,
+            j_0: c.j_0,
+            j_end: c.j_end,
+            recurrence: c.recurrence,
+            cache_key: c.cache_key,
+            occurrences,
+        }
+    }
+}
+
+#[get("/api/courses")]
+async fn courses(db: DbConn, a: Account) -> ApiResult<Vec<CourseAndOccurrences>> {
+    let courses = with_db!(db => {
+        use schema::courses::dsl as c_dsl;
+        use schema::events::dsl as e_dsl;
+
+        try_block! {
+            let mut courses: Vec<CourseAndOccurrences> = c_dsl::courses
+                .order_by(c_dsl::j_0.asc())
+                .filter(c_dsl::owner.eq(a.id))
+                .load::<Course>(db)?
+                .into_iter()
+                .map(|c| CourseAndOccurrences::from((c, Vec::new())))
+                .collect::<Vec<_>>();
+
+            for course in &mut courses {
+                course.occurrences = e_dsl::events
+                    .order_by(e_dsl::date.asc())
+                    .filter(e_dsl::course.eq(course.id))
+                    .select((e_dsl::date, e_dsl::marking))
+                    .load::<(NaiveDate, Option<String>)>(db)?;
+            }
+
+            Ok(courses) as Result<_, diesel::result::Error>
+        }
     }?);
 
     ApiResult::Ok(courses)
@@ -294,7 +345,11 @@ struct CourseBody {
 }
 
 #[post("/api/courses", data = "<json>")]
-async fn courses_insert(db: DbConn, a: Account, json: Json<CourseBody>) -> ApiResult<Course> {
+async fn courses_insert(
+    db: DbConn,
+    a: Account,
+    json: Json<CourseBody>,
+) -> ApiResult<CourseAndOccurrences> {
     let json = json.into_inner();
 
     let offsets = NewEvent::parse_recurrence(&json.recurrence);
@@ -329,8 +384,9 @@ async fn courses_insert(db: DbConn, a: Account, json: Json<CourseBody>) -> ApiRe
             let dates = NewEvent::from_offsets(
                 &offsets, course.author, course.id, course.j_0, course.j_end, course.cache_key
             );
+            let occurrences = dates.iter().map(|date| (date.date, None)).collect();
             diesel::insert_into(e_dsl::events).values(dates).execute(db)?;
-            Ok(course)
+            Ok(CourseAndOccurrences::from((course, occurrences)))
         })
     }?);
 

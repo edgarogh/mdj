@@ -8,9 +8,10 @@ import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import Typography from "@material-ui/core/Typography";
 import Skeleton from "@material-ui/lab/Skeleton";
-import {useCallback, useState} from "react";
+import {useCallback, useMemo, useState} from "react";
 import {Event, useApi} from "./Api";
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import React from "react";
 
 const useStyles = makeStyles((theme) => ({
     skeleton: {
@@ -49,8 +50,17 @@ export default function EventView({ hideDate, event }: EventViewProps) {
     const furtherLearningRequired = event?.marking === 'further_learning_required';
     const done = event?.marking === 'done';
 
+    const id = useMemo(() => event?.course && (
+        `tl-event-${event.course.id}-${event.date}`
+    ), [event?.course?.id, event?.date]);
+
     return (
-        <Accordion className={!event ? classes.skeleton : ''} expanded={!!event && expanded} onChange={(_, e) => setExpanded(e)}>
+        <Accordion
+            id={id}
+            className={!event ? classes.skeleton : ''}
+            expanded={!!event && expanded}
+            onChange={(_, e) => setExpanded(e)}
+        >
             <AccordionSummary className={classes.summary} expandIcon={event && <ExpandMoreIcon />}>
                 {event ? <div className={classes.summary}>
                     <Typography style={{ textDecoration: done ? 'line-through' : 'inherit' }} className={classes.heading}>

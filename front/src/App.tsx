@@ -1,16 +1,12 @@
 import {makeStyles} from "@material-ui/core";
 import Container from "@material-ui/core/Container";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import Api, {useApi} from "./Api";
 import {BottomButtonProvider} from "./BottomButton";
 import CourseEdit from "./CourseEdit";
 import CourseList from "./CourseList";
-import {
-    BrowserRouter as Router,
-    Switch,
-    Route,
-} from "react-router-dom";
+import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
 import Settings from "./Settings";
 import Tabs from "./Tabs";
 import Timeline from "./Timeline";
@@ -24,7 +20,7 @@ const useStyles = makeStyles({
     },
     main: {
         flex: '1',
-        overflow: 'scroll',
+        overflowY: 'auto',
         paddingBottom: '8px',
     },
 });

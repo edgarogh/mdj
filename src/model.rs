@@ -12,7 +12,7 @@ pub struct NewEvent {
     course: Uuid,
     j: i64,
     marking: Option<String>,
-    date: NaiveDate,
+    pub date: NaiveDate,
     cache_key: Uuid,
 }
 

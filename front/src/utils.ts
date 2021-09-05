@@ -1,8 +1,12 @@
 import {useState} from "react";
 
-export function tzOffset(date: Date) {
+export function tzOffset(date: Date | number) {
     const offset = new Date().getTimezoneOffset() * 60000;
     return new Date(date - offset);
+}
+
+export function roundDate(date: Date = new Date(Date.now())): Date {
+    return new Date(Date.parse(date.toISOString().substr(0, 10)));
 }
 
 /**
