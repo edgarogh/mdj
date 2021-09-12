@@ -1,6 +1,7 @@
 import {ButtonBaseActions, makeStyles} from "@material-ui/core";
 import Accordion from "@material-ui/core/Accordion";
 import Select from "@material-ui/core/Select";
+import Chip from "@material-ui/core/Chip";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import FormControl from "@material-ui/core/FormControl";
@@ -22,6 +23,9 @@ const useStyles = makeStyles((theme) => ({
         fontSize: theme.typography.pxToRem(15),
             flexBasis: '33.33%',
             flexShrink: 0,
+    },
+    chip: {
+        marginLeft: '12px',
     },
     summary: {
         display: 'flex',
@@ -76,6 +80,7 @@ export default function EventView({ hideDate, event }: EventViewProps) {
                         {event.course.name}
                         {started && '*'}
                         {furtherLearningRequired && '?'}
+                        <Chip className={classes.chip} variant="outlined" size="small" label={`J+${event.j}`}/>
                     </Typography>
                     <Typography className={classes.secondaryHeading}>
                         {!hideDate && event.date.toUtc().toDateString()}

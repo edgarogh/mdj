@@ -521,6 +521,7 @@ macro_rules! event_and_course_select {
             ))
             .filter(e_dsl::course.eq(c_dsl::id))
             .order_by(e_dsl::date.asc())
+            .then_order_by(e_dsl::j.asc())
     }};
 }
 
