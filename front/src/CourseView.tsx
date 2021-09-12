@@ -9,8 +9,8 @@ import {Link, useHistory} from "react-router-dom";
 import {Course, useApi} from "./Api";
 import Button from "@material-ui/core/Button";
 import Divider from "@material-ui/core/Divider";
-import {roundDate, tzOffset} from "./utils";
-import {TransitionGroup, CSSTransition} from "react-transition-group";
+import {CSSTransition, TransitionGroup} from "react-transition-group";
+import Day from "./Day";
 
 export interface CourseViewProps {
     course: Course | undefined,
@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
 
 interface OccurrenceChipProps {
     course: Course,
-    date: string,
+    date: Day,
     marking: string,
 }
 
@@ -40,15 +40,15 @@ function OccurrenceChip(props: OccurrenceChipProps) {
     const history = useHistory();
 
     let onClick = useCallback(() => {
-        const id = `tl-event-${props.course.id}-${props.date}`;
+        const id = `tl-event-${props.course.id}-${props.date.value}`;
         history.push('/#' + id);
-    }, [props.course.id, props.date]);
+    }, [props.course.id, props.date.value]);
 
     return (
         <Chip
-            disabled={tzOffset(Date.parse(props.date)) < roundDate()}
+            disabled={props.date.isBefore(Day.today())}
             onClick={onClick}
-            label={(new Date(Date.parse(props.date))).toLocaleDateString()}
+            label={props.date.value}
         />
     )
 }
@@ -91,7 +91,7 @@ function OccurrenceChipSection({ course }: OccurrenceChipSectionProps) {
                     timeout={200}
                     classNames="chip-fade"
                 >
-                    <OccurrenceChip course={course} date={date} marking={marking}/>
+                    <OccurrenceChip course={course} date={new Day(date)} marking={marking}/>
                 </CSSTransition>
             ))}
         </TransitionGroup>

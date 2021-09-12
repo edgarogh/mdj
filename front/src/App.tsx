@@ -10,6 +10,7 @@ import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
 import Settings from "./Settings";
 import Tabs from "./Tabs";
 import Timeline from "./Timeline";
+import CalendarScreen from "./CalendarScreen";
 
 const useStyles = makeStyles({
     container: {
@@ -55,6 +56,9 @@ export default function App() {
                 <Container className={classes.container} maxWidth="sm">
                     <main className={classes.main}>
                         <Switch>
+                            <Route path="/calendar">
+                                <CalendarScreen/>
+                            </Route>
                             <Route path="/courses/:id">
                                 <CourseEdit/>
                             </Route>

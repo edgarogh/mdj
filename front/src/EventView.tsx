@@ -1,4 +1,4 @@
-import {makeStyles} from "@material-ui/core";
+import {ButtonBaseActions, makeStyles} from "@material-ui/core";
 import Accordion from "@material-ui/core/Accordion";
 import Select from "@material-ui/core/Select";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -8,10 +8,11 @@ import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import Typography from "@material-ui/core/Typography";
 import Skeleton from "@material-ui/lab/Skeleton";
-import {useCallback, useMemo, useState} from "react";
+import React, {useCallback, useMemo, useState} from "react";
 import {Event, useApi} from "./Api";
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import React from "react";
+
+const SCROLL_ARGS: ScrollIntoViewOptions = { behavior: 'auto', block: 'center', inline: 'center' };
 
 const useStyles = makeStyles((theme) => ({
     skeleton: {
@@ -51,8 +52,15 @@ export default function EventView({ hideDate, event }: EventViewProps) {
     const done = event?.marking === 'done';
 
     const id = useMemo(() => event?.course && (
-        `tl-event-${event.course.id}-${event.date}`
+        `tl-event-${event.course.id}-${event.date.value}`
     ), [event?.course?.id, event?.date]);
+
+    const idInHash = useMemo(() => (
+        window.location.hash.substr(1) === id
+    ), [id])
+
+    const ref = (ref: HTMLDivElement | null) => idInHash && ref?.scrollIntoView(SCROLL_ARGS);
+    const rippleRef = (ref: ButtonBaseActions | null) => idInHash && ref?.focusVisible();
 
     return (
         <Accordion
@@ -60,8 +68,9 @@ export default function EventView({ hideDate, event }: EventViewProps) {
             className={!event ? classes.skeleton : ''}
             expanded={!!event && expanded}
             onChange={(_, e) => setExpanded(e)}
+            ref={ref}
         >
-            <AccordionSummary className={classes.summary} expandIcon={event && <ExpandMoreIcon />}>
+            <AccordionSummary className={classes.summary} expandIcon={event && <ExpandMoreIcon />} action={rippleRef}>
                 {event ? <div className={classes.summary}>
                     <Typography style={{ textDecoration: done ? 'line-through' : 'inherit' }} className={classes.heading}>
                         {event.course.name}
@@ -69,7 +78,7 @@ export default function EventView({ hideDate, event }: EventViewProps) {
                         {furtherLearningRequired && '?'}
                     </Typography>
                     <Typography className={classes.secondaryHeading}>
-                        {!hideDate && formatDate(event.date)}
+                        {!hideDate && event.date.toUtc().toDateString()}
                     </Typography>
                 </div> : (
                     <Skeleton width="33%"/>
@@ -111,8 +120,4 @@ function EventViewEditMark({ event }: { event: Event }) {
             </Select>
         </FormControl>
     );
-}
-
-function formatDate(date: string) {
-    return (new Date(Date.parse(date))).toDateString();
 }

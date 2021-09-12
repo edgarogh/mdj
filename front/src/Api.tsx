@@ -1,4 +1,5 @@
-import React, {createContext, ReactChildren, ReactNode, useContext, useMemo, useState} from "react";
+import React, {createContext, ReactChildren, useContext, useMemo, useState} from "react";
+import Day from "./Day";
 
 export interface AccountInfo {
     id?: string;
@@ -10,7 +11,7 @@ export interface Event {
     course: Course;
     j: number;
     marking: string;
-    date: string;
+    date: Day;
 }
 
 export interface Course {
@@ -80,8 +81,9 @@ export default function Api(props: ApiProps) {
                     throw "Courses not loaded";
                 }
 
-                return fetch(ENDPOINTS.timeline, { credentials: 'include' }).then(res => res.json()).then((res: Partial<Event>[]) => {
+                return fetch(ENDPOINTS.timeline, { credentials: 'include' }).then(res => res.json()).then((res: any[]) => {
                     setTimeline(res.map((e) => Object.assign(e, {
+                        date: new Day(e.date),
                         course: courses?.find((c) => c.id === (e as any).course),
                     }) as Event));
                 });
@@ -121,7 +123,7 @@ export default function Api(props: ApiProps) {
                     course.recurrence = newCourse.recurrence;
                     course.occurrences = [[course.j_0, ""]];
 
-                    courses.sort((a, b) => (new Date(a.j_0) - new Date(b.j_0)));
+                    courses.sort((a, b) => (new Date(a.j_0).getTime() - new Date(b.j_0).getTime()));
                     setCourses([...courses]);
 
                     await fetch(ENDPOINTS.courses_id + newCourse.id, {
@@ -150,7 +152,7 @@ export default function Api(props: ApiProps) {
                     course.id = '';
 
                     courses.push(course as Course);
-                    courses.sort((a, b) => (new Date(a.j_0) - new Date(b.j_0)));
+                    courses.sort((a, b) => (new Day(a.j_0).toUtc().getTime() - new Day(b.j_0).toUtc().getTime()));
                     setCourses([...courses]);
 
                     const inserted = await fetch(ENDPOINTS.courses, {

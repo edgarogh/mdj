@@ -3,13 +3,24 @@ import Typography from "@material-ui/core/Typography";
 import Title from "./Title";
 import Skeleton from "@material-ui/lab/Skeleton";
 import React, {useMemo} from "react";
-import {useApi, Event} from "./Api";
+import {Event, useApi} from "./Api";
 import EventView from "./EventView";
-import {tzOffset} from "./utils";
+import Button from "@material-ui/core/Button";
+import CalendarIcon from "@material-ui/icons/DateRange"
+import {Link} from "react-router-dom";
+import Day from "./Day";
 
 const useStyles = makeStyles({
     padded: {
         padding: '12px 8px 8px 8px',
+    },
+    calendarButtonContainer: {
+        width: '100%',
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });
 
@@ -66,13 +77,12 @@ export default function Timeline() {
                 <Category name='week' events={undefined}/>
             </>;
         } else {
-            const today = tzOffset(new Date()).toISOString().substr(0, 10);
-            const oneWeek = tzOffset(new Date(Date.now() + 1000 * 3600 * 24 * 7)).toISOString().substr(0, 10);
+            const oneWeek = Day.fromUtc(new Date(Date.now() + 1000 * 3600 * 24 * 7));
 
             return <>
-                <Category name="today" events={timeline.filter(e => e.date === today)}/>
-                <Category name="week" events={timeline.filter(e => e.date > today && e.date <= oneWeek)}/>
-                <Category name="rest" events={timeline.filter(e => e.date > oneWeek)}/>
+                <Category name="today" events={timeline.filter(e => e.date.isToday())}/>
+                <Category name="week" events={timeline.filter(e => e.date.isAfter(Day.today()) && (e.date.equals(oneWeek) || e.date.isBefore(oneWeek)))}/>
+                <Category name="rest" events={timeline.filter(e => e.date.isAfter(oneWeek))}/>
             </>;
         }
     }, [timeline]);
@@ -90,5 +100,16 @@ export default function Timeline() {
         </div>
 
         {categories}
+
+        {timeline && <div className={classes.calendarButtonContainer}>
+            <Button
+                variant="contained"
+                endIcon={<CalendarIcon/>}
+                component={Link}
+                to="/calendar"
+            >
+                Voir le calendrier (EXPÉRIMENTAL)
+            </Button>
+        </div>}
     </>;
 }
