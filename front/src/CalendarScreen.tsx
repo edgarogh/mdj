@@ -3,7 +3,7 @@ import Calendar from "react-calendar";
 import {makeStyles} from "@material-ui/core";
 import {useApi} from "./Api";
 import EventView from "./EventView";
-import {Day} from "./Day";
+import Day from "./Day";
 
 const useStyles = makeStyles({
     calendar: {
