@@ -27,6 +27,10 @@ export default class Day {
         return this.value < other.value;
     }
 
+    isBeforeOrEq(other: Day) {
+        return this.value <= other.value;
+    }
+
     isAfter(other: Day) {
         return this.value > other.value;
     }

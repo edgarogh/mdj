@@ -113,7 +113,7 @@ export default function CourseView({ course }: CourseViewProps) {
 
     const onDeleteButtonClick = useCallback(() => {
         if (course?.id && confirm(`Voulez vous vraiment supprimer "${course.name}" ?`)) {
-            deleteCourse(course.id);
+            deleteCourse(course.id).catch(console.error);
         }
     }, [course?.id]);
 

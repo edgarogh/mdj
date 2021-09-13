@@ -105,7 +105,7 @@ function EventViewEditMark({ event }: { event: Event }) {
 
     const onMarkChange = useCallback((e) => {
         setMark(e.target.value);
-        markEvent(event.course.id, event.j, e.target.value);
+        markEvent(event.course.id, event.j, e.target.value).catch(console.error);
     }, [event?.course, event?.j, setMark]);
 
     return (

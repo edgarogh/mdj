@@ -1,4 +1,4 @@
-import React, {createContext, ReactChildren, useContext, useMemo, useState} from "react";
+import React, {createContext, ReactNode, useContext, useMemo, useState} from "react";
 import Day from "./Day";
 
 export interface AccountInfo {
@@ -44,7 +44,7 @@ export const ApiContext = createContext<Api>(undefined as never);
 
 export interface ApiProps {
     endpoint: string;
-    children: ReactChildren;
+    children: ReactNode | undefined;
 }
 
 export default function Api(props: ApiProps) {

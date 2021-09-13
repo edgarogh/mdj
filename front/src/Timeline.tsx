@@ -81,7 +81,7 @@ export default function Timeline() {
 
             return <>
                 <Category name="today" events={timeline.filter(e => e.date.isToday())}/>
-                <Category name="week" events={timeline.filter(e => e.date.isAfter(Day.today()) && (e.date.equals(oneWeek) || e.date.isBefore(oneWeek)))}/>
+                <Category name="week" events={timeline.filter(e => e.date.isAfter(Day.today()) && e.date.isBeforeOrEq(oneWeek))}/>
                 <Category name="rest" events={timeline.filter(e => e.date.isAfter(oneWeek))}/>
             </>;
         }

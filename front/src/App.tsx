@@ -32,9 +32,9 @@ function ApiInitializer() {
 
     useEffect(() => {
         if (window) {
-            fetchAccountInfo();
-            fetchCourses();
-        };
+            fetchAccountInfo().catch(console.error);
+            fetchCourses().catch(console.error);
+        }
     }, []);
 
     useEffect(() => {
