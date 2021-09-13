@@ -5,7 +5,7 @@ import CourseView from "./CourseView";
 import AddIcon from "@material-ui/icons/Add";
 import React from "react";
 
-export default function CourseList() {
+export default function CourseListScreen() {
     const { courses, fetchCourses } = useApi();
 
     return (

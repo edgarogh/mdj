@@ -5,7 +5,7 @@ import React, {useEffect, useState} from "react";
 import Api, {useApi} from "./Api";
 import {BottomButtonProvider} from "./BottomButton";
 import CourseEdit from "./CourseEdit";
-import CourseList from "./CourseList";
+import CourseListScreen from "./CourseListScreen";
 import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
 import Settings from "./Settings";
 import Tabs from "./Tabs";
@@ -63,7 +63,7 @@ export default function App() {
                                 <CourseEdit/>
                             </Route>
                             <Route path="/courses">
-                                <CourseList/>
+                                <CourseListScreen/>
                             </Route>
                             <Route path="/settings">
                                 <Settings/>
