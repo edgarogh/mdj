@@ -10,8 +10,11 @@ import AccordionDetails from "@material-ui/core/AccordionDetails";
 import Typography from "@material-ui/core/Typography";
 import Skeleton from "@material-ui/lab/Skeleton";
 import React, {useCallback, useMemo, useState} from "react";
-import {Event, useApi} from "./Api";
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import {observer} from "mobx-react-lite";
+import {Event} from "./store";
+
+let id = 0;
 
 const SCROLL_ARGS: ScrollIntoViewOptions = { behavior: 'auto', block: 'center', inline: 'center' };
 
@@ -46,13 +49,16 @@ export interface EventViewProps {
     event: Event | undefined;
 }
 
-export default function EventView({ hideDate, event }: EventViewProps) {
+export default observer(function EventView({ hideDate, event }: EventViewProps) {
     const classes = useStyles();
     const [expanded, setExpanded] = useState(false);
 
-    const started = event?.marking === 'started';
-    const furtherLearningRequired = event?.marking === 'further_learning_required';
-    const done = event?.marking === 'done';
+    const name = event?.course?.name;
+    const marking = event?.marking;
+
+    const started = marking === 'started';
+    const furtherLearningRequired = marking === 'further_learning_required';
+    const done = marking === 'done';
 
     const id = useMemo(() => event?.course && (
         `tl-event-${event.course.id}-${event.date.value}`
@@ -67,16 +73,20 @@ export default function EventView({ hideDate, event }: EventViewProps) {
 
     return (
         <Accordion
-            id={id}
+            id={id || undefined}
             className={!event ? classes.skeleton : ''}
             expanded={!!event && expanded}
             onChange={(_, e) => setExpanded(e)}
             ref={ref}
         >
             <AccordionSummary className={classes.summary} expandIcon={event && <ExpandMoreIcon />} action={rippleRef}>
-                {event ? <div className={classes.summary}>
-                    <Typography style={{ textDecoration: done ? 'line-through' : 'inherit' }} className={classes.heading}>
-                        {event.course.name}
+                {event && name ? <div className={classes.summary}>
+                    <Typography
+                        component="h4"
+                        style={{ textDecoration: done ? 'line-through' : 'inherit' }}
+                        className={classes.heading}
+                    >
+                        {name}
                         {started && '*'}
                         {furtherLearningRequired && '?'}
                         <Chip className={classes.chip} variant="outlined" size="small" label={`J+${event.j}`}/>
@@ -95,25 +105,24 @@ export default function EventView({ hideDate, event }: EventViewProps) {
             )}
         </Accordion>
     );
-}
+});
 
-function EventViewEditMark({ event }: { event: Event }) {
+const EventViewEditMark = observer(function EventViewEditMark({ event }: { event: Event }) {
     const classes = useStyles();
-    const { markEvent } = useApi();
 
     const [mark, setMark] = useState(event.marking || '');
 
     const onMarkChange = useCallback((e) => {
         setMark(e.target.value);
-        markEvent(event.course.id, event.j, e.target.value).catch(console.error);
+        event.mark(e.target.value);
     }, [event?.course, event?.j, setMark]);
 
     return (
         <FormControl className={classes.markSelect} variant="outlined">
-            <InputLabel id={`mark-label-${event.course.id}-${event.j}`}>Marquage</InputLabel>
+            <InputLabel id={`mark-label-${event.course?.id || id++}-${event.j}`}>Marquage</InputLabel>
             <Select
-                id={`mark-${event.course.id}-${event.j}`}
-                labelId={`mark-label-${event.course.id}-${event.j}`}
+                id={`mark-${event.course?.id || id++}-${event.j}`}
+                labelId={`mark-label-${event.course?.id || id++}-${event.j}`}
                 value={mark}
                 onChange={onMarkChange}
             >
@@ -124,4 +133,4 @@ function EventViewEditMark({ event }: { event: Event }) {
             </Select>
         </FormControl>
     );
-}
+});

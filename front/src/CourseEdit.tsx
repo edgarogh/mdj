@@ -6,9 +6,10 @@ import TextField from "@material-ui/core/TextField";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import {Link, useHistory, useRouteMatch} from "react-router-dom";
-import {useApi} from "./Api";
 import {WithBottomButton} from "./BottomButton";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
+import {useRootStore} from "./StoreProvider";
+import {observer} from "mobx-react-lite";
 
 const useStyles = makeStyles({
     backButton: {
@@ -28,12 +29,14 @@ const useStyles = makeStyles({
     },
 });
 
-export default function CourseEdit() {
+export default observer(function CourseEdit() {
     const { params: { id } } = useRouteMatch('/courses/:id');
     const history = useHistory();
 
     const classes = useStyles();
-    const { accountInfo, courses, insertOrUpdateCourse } = useApi();
+    const { accountInfo } = useRootStore();
+    const store = useRootStore();
+    const courses = store.courseStore.courses;
 
     const isNew = id === 'new';
     const instance = useMemo(() => Date.now(), []);
@@ -49,36 +52,38 @@ export default function CourseEdit() {
 
     const course = useMemo(() => {
         if (!isNew) {
-            if (courses === undefined) throw "Unknown course"; // Shouldn't happen in most contexts
             return courses.find((c) => c.id === id);
         } else {
             return undefined;
         }
     }, []);
 
-    const [name, setName] = useState(course?.name || '');
-    const [description, setDescription] = useState(course?.description || '');
-    const [j0, setJ0] = useState(course?.j_0 || (new Date()).toISOString().substr(0,10));
-    const [jEnd, setJEnd] = useState(course?.j_end || '2021-12-18'); // TODO default
-    const [recurrence, setRecurrence] = useState(course?.recurrence || defaultRecurrences);
+    const [name, setName] = useState<string>(course?.name || '');
+    const [description, setDescription] = useState<string>(course?.description || '');
+    const [j0, setJ0] = useState<string>(course?.j_0?.value || (new Date()).toISOString().substr(0,10));
+    const [jEnd, setJEnd] = useState<string>(course?.j_end?.value || '2021-12-18'); // TODO default
+    const [recurrence, setRecurrence] = useState<string>(course?.recurrence || defaultRecurrences);
 
     const nameValid = useMemo(() => name.length >= 1, [name]);
     const recurrenceValid = useMemo(() => !!/^0(?:,\d{1,6})+$/.exec(recurrence), [recurrence]);
 
     const submit = useCallback(() => {
-        insertOrUpdateCourse({
+        const object = {
             id: course?.id || '',
             name,
             description,
             j_0: j0,
             j_end: jEnd,
             recurrence,
-        })
-            .then(() => history.push('/courses'))
-            .catch((e) => {
-                console.error(e);
-                window.location.reload();
-            });
+        };
+
+        if (course) {
+            course.update(object);
+        } else {
+            store.courseStore.createCourse(object);
+        }
+
+        history.push('/courses');
     }, [course?.id, name, description, j0, jEnd, recurrence, history]);
 
     return <>
@@ -148,4 +153,4 @@ export default function CourseEdit() {
             onClick={submit}
         />
     </>
-}
+});

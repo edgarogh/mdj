@@ -1,8 +1,7 @@
 import {makeStyles} from "@material-ui/core";
 import Container from "@material-ui/core/Container";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import React, {useEffect, useState} from "react";
-import Api, {useApi} from "./Api";
+import React from "react";
 import {BottomButtonProvider} from "./BottomButton";
 import CourseEdit from "./CourseEdit";
 import CourseListScreen from "./CourseListScreen";
@@ -26,31 +25,12 @@ const useStyles = makeStyles({
     },
 });
 
-function ApiInitializer() {
-    const { courses, fetchAccountInfo, fetchTimeline, fetchCourses } = useApi();
-    const [ran, setRan] = useState(false);
-
-    useEffect(() => {
-        if (window) {
-            fetchAccountInfo().catch(console.error);
-            fetchCourses().catch(console.error);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (window && courses && !ran) fetchTimeline().then(() => setRan(true));
-    }, [courses, ran]);
-
-    return <></>;
-}
-
 export default function App() {
     const classes = useStyles();
 
     return (
-        <Api endpoint="/">
+        <>
             <CssBaseline/>
-            <ApiInitializer/>
             <BottomButtonProvider>
             <Router>
                 <Container className={classes.container} maxWidth="sm">
@@ -77,6 +57,6 @@ export default function App() {
                 </Container>
             </Router>
             </BottomButtonProvider>
-        </Api>
+        </>
     );
 }

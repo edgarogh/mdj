@@ -2,13 +2,14 @@ import {makeStyles} from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import Title from "./Title";
 import Skeleton from "@material-ui/lab/Skeleton";
-import React, {useMemo} from "react";
-import {Event, useApi} from "./Api";
+import React from "react";
 import EventView from "./EventView";
 import Button from "@material-ui/core/Button";
 import CalendarIcon from "@material-ui/icons/DateRange"
 import {Link} from "react-router-dom";
-import Day from "./Day";
+import {Event} from "./store";
+import {useRootStore} from "./StoreProvider";
+import {observer} from "mobx-react-lite";
 
 const useStyles = makeStyles({
     padded: {
@@ -38,7 +39,7 @@ const CATEGORY_SKELETON: Record<CategoryName, [number, number]> = {
     rest: [0, 0],
 };
 
-function Category({ name, events }: { name: CategoryName, events: Event[] | undefined }) {
+const Category = observer(function Category({ name, events }: { name: CategoryName, events: Event[] | undefined }) {
     const classes = useStyles();
 
     const isToday = name === 'today';
@@ -50,7 +51,7 @@ function Category({ name, events }: { name: CategoryName, events: Event[] | unde
             .map((_, idx) => <EventView key={idx} event={undefined}/>);
     } else {
         eventComponents = events.map((e) => (
-            <EventView key={e.course.id + '/' + e.j} event={e} hideDate={isToday}/>
+            <EventView key={e.key} event={e} hideDate={isToday}/>
         ));
     }
 
@@ -64,28 +65,28 @@ function Category({ name, events }: { name: CategoryName, events: Event[] | unde
         </div>
         {eventComponents}
     </>;
-}
+});
 
-export default function Timeline() {
+export default observer(function Timeline() {
     const classes = useStyles();
-    const { accountInfo: { email }, timeline } = useApi();
+    const store = useRootStore();
 
-    const categories = useMemo(() => {
-        if (!timeline) {
-            return <>
+    const email = store.accountInfo?.email;
+    const timeline = store.eventStore.timeline;
+
+    const categories =
+        store.eventStore.isLoading ? (
+            <>
                 <Category name='today' events={undefined}/>
                 <Category name='week' events={undefined}/>
-            </>;
-        } else {
-            const oneWeek = Day.fromUtc(new Date(Date.now() + 1000 * 3600 * 24 * 7));
-
-            return <>
-                <Category name="today" events={timeline.filter(e => e.date.isToday())}/>
-                <Category name="week" events={timeline.filter(e => e.date.isAfter(Day.today()) && e.date.isBeforeOrEq(oneWeek))}/>
-                <Category name="rest" events={timeline.filter(e => e.date.isAfter(oneWeek))}/>
-            </>;
-        }
-    }, [timeline]);
+            </>
+        ) : (
+            <>
+                <Category name="today" events={store.eventStore.timelineToday}/>
+                <Category name="week" events={store.eventStore.timeline7Days}/>
+                <Category name="rest" events={store.eventStore.timelineRest}/>
+            </>
+        );
 
     return <>
         <div className={classes.padded}>
@@ -101,7 +102,7 @@ export default function Timeline() {
 
         {categories}
 
-        {timeline && <div className={classes.calendarButtonContainer}>
+        {(timeline.length > 0) && <div className={classes.calendarButtonContainer}>
             <Button
                 variant="contained"
                 endIcon={<CalendarIcon/>}
@@ -112,4 +113,4 @@ export default function Timeline() {
             </Button>
         </div>}
     </>;
-}
+});

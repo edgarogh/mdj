@@ -6,11 +6,12 @@ import Card from "@material-ui/core/Card";
 import Skeleton from "@material-ui/lab/Skeleton";
 import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {Link, useHistory} from "react-router-dom";
-import {Course, useApi} from "./Api";
+import {Course} from "./store";
 import Button from "@material-ui/core/Button";
 import Divider from "@material-ui/core/Divider";
 import {CSSTransition, TransitionGroup} from "react-transition-group";
 import Day from "./Day";
+import {observer} from "mobx-react-lite";
 
 export interface CourseViewProps {
     course: Course | undefined,
@@ -59,7 +60,7 @@ interface OccurrenceChipSectionProps {
 
 const CHIP_ELLIPSIS = 8;
 
-function OccurrenceChipSection({ course }: OccurrenceChipSectionProps) {
+const OccurrenceChipSection = observer(function OccurrenceChipSection({ course }: OccurrenceChipSectionProps) {
     const [expanded, setExpanded] = useState(false);
 
     const ellipsis = course.occurrences.length > CHIP_ELLIPSIS;
@@ -103,17 +104,16 @@ function OccurrenceChipSection({ course }: OccurrenceChipSectionProps) {
             label={moreLessLabel}
         />}
     </>;
-}
+});
 
-export default function CourseView({ course }: CourseViewProps) {
+export default observer(function CourseView({ course }: CourseViewProps) {
     const classes = useStyles();
-    const { deleteCourse } = useApi();
 
-    const isLoaded = !!course?.id;
+    const isLoaded = !!course;
 
     const onDeleteButtonClick = useCallback(() => {
         if (course?.id && confirm(`Voulez vous vraiment supprimer "${course.name}" ?`)) {
-            deleteCourse(course.id).catch(console.error);
+            course?.delete();
         }
     }, [course?.id]);
 
@@ -133,9 +133,9 @@ export default function CourseView({ course }: CourseViewProps) {
             )}
             <Divider/>
             <CardActions>
-                <Button disabled={!isLoaded} size="small" to={isLoaded ? `/courses/${course.id}` : undefined} component={isLoaded ? Link : undefined}>Modifier</Button>
+                <Button disabled={!isLoaded} size="small" to={isLoaded ? `/courses/${course!!.id}` : undefined} component={isLoaded ? Link : undefined}>Modifier</Button>
                 <Button disabled={!isLoaded} size="small" onClick={onDeleteButtonClick}>Supprimer</Button>
             </CardActions>
         </Card>
     );
-}
+});

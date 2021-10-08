@@ -1,19 +1,22 @@
 import Button from "@material-ui/core/Button";
 import {Link} from "react-router-dom";
-import {useApi} from "./Api";
 import CourseView from "./CourseView";
 import AddIcon from "@material-ui/icons/Add";
 import React from "react";
+import {useRootStore} from "./StoreProvider";
+import {observer} from "mobx-react-lite";
 
-export default function CourseListScreen() {
-    const { courses, fetchCourses } = useApi();
+export default observer(function CourseListScreen() {
+    const store = useRootStore();
+
+    const courses = store.courseStore.courses;
 
     return (
         <>
             <div style={{ margin: '8px' }}>
                 <Button
                     style={{ width: '100%' }}
-                    disabled={!courses}
+                    disabled={store.courseStore.isLoading}
                     variant="outlined"
                     size="large"
                     startIcon={<AddIcon />}
@@ -23,7 +26,7 @@ export default function CourseListScreen() {
                     Ajouter un cours
                 </Button>
             </div>
-            {!!courses ? (
+            {!store.courseStore.isLoading ? (
                 courses.length === 0 ? (
                     "Aucun cours"
                 ) : (
@@ -36,4 +39,4 @@ export default function CourseListScreen() {
             )}
         </>
     );
-}
+});

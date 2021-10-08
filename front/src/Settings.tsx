@@ -9,7 +9,8 @@ import FileCopyIcon from "@material-ui/icons/FileCopy";
 import Skeleton from "@material-ui/lab/Skeleton";
 import copy from "copy-to-clipboard";
 import React, {useCallback, useEffect, useMemo, useState} from "react";
-import {useApi} from "./Api";
+import {observer} from "mobx-react-lite";
+import {useRootStore} from "./StoreProvider";
 
 const useStyles = makeStyles({
     paper: {
@@ -42,16 +43,17 @@ const useStyles = makeStyles({
     },
 });
 
-export default function Settings() {
+export default observer(function Settings() {
     const classes = useStyles();
-    const { accountInfo: { id: accountId } } = useApi();
+    const store = useRootStore();
+    const accountId = store.accountInfo.id;
 
     const icalUrl = useMemo(() => (
         accountId ? (`${location.protocol}//${location.host}` + "/ical/" + accountId) : undefined
     ), [accountId]);
 
     const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [snackbarTimeout, setSnackbarTimeout] = useState<number | undefined>(undefined);
+    const [snackbarTimeout, setSnackbarTimeout] = useState<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     useEffect(() => () => {
         if (snackbarTimeout) clearTimeout(snackbarTimeout);
@@ -93,4 +95,4 @@ export default function Settings() {
             </div>
         </div>
     );
-}
+});
