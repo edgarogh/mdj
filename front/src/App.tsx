@@ -10,6 +10,7 @@ import Settings from "./Settings";
 import Tabs from "./Tabs";
 import Timeline from "./Timeline";
 import CalendarScreen from "./CalendarScreen";
+import * as routes from './routes';
 
 const useStyles = makeStyles({
     container: {
@@ -36,19 +37,19 @@ export default function App() {
                 <Container className={classes.container} maxWidth="sm">
                     <main className={classes.main}>
                         <Switch>
-                            <Route path="/calendar">
+                            <Route path={routes.CALENDAR}>
                                 <CalendarScreen/>
                             </Route>
-                            <Route path="/courses/:id">
+                            <Route path={routes.COURSES_EDIT}>
                                 <CourseEdit/>
                             </Route>
-                            <Route path="/courses">
+                            <Route path={routes.COURSES}>
                                 <CourseListScreen/>
                             </Route>
-                            <Route path="/settings">
+                            <Route path={routes.TAB_SETTINGS}>
                                 <Settings/>
                             </Route>
-                            <Route path="/">
+                            <Route path={routes.TIMELINE}>
                                 <Timeline/>
                             </Route>
                         </Switch>

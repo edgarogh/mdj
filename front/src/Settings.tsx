@@ -11,13 +11,16 @@ import copy from "copy-to-clipboard";
 import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {observer} from "mobx-react-lite";
 import {useRootStore} from "./StoreProvider";
+import {Link} from "react-router-dom";
+import * as routes from './routes';
+import ArchiveDialogs from "./ArchiveDialogs";
 
 const useStyles = makeStyles({
     paper: {
         borderRadius: 0,
         padding: '8px',
         '&:not(:last-child)': {
-            marginBottom: '8px',
+            marginBottom: '12px',
         },
     },
     paperInner: {
@@ -34,6 +37,15 @@ const useStyles = makeStyles({
         whiteSpace: 'nowrap',
         textAlign: 'left',
         justifyContent: 'start',
+    },
+    archiveRow: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-evenly',
+        marginTop: '12px',
+        '& > *': {
+            width: '80%',
+        },
     },
     disconnectButtonContainer: {
         display: 'flex',
@@ -72,7 +84,7 @@ export default observer(function Settings() {
     return (
         <div style={{ paddingTop: '8px' }}>
             <Paper className={classes.paper}>
-                <Typography component="h2">Importer dans un calendrier</Typography>
+                <Typography variant="h6" component="h2">Importer dans un calendrier</Typography>
                 <div className={classes.paperInner}>
                     <Button disabled={!icalUrl} className={classes.linkButton} variant="outlined" onClick={doCopy}>
                         {icalUrl ? (
@@ -89,6 +101,14 @@ export default observer(function Settings() {
                         message={"URL copié"}
                     />
                 </div>
+            </Paper>
+            <Paper className={classes.paper}>
+                <Typography variant="h6" component="h2">Archive</Typography>
+                <Typography variant="body1" color="textSecondary">Votre archive rassemble les cours manuellement marqués comme archivés. Elle permet de mettre de côté des cours arrivés à leur échéance sans pour autant les supprimer définitivement.</Typography>
+                <div className={classes.archiveRow}>
+                    <Button variant="outlined" to={routes.ARCHIVE_COURSES} component={Link}>Ouvrir</Button>
+                </div>
+                <ArchiveDialogs/>
             </Paper>
             <div className={classes.disconnectButtonContainer}>
                 <Button startIcon={<ExitToApp/>} href="/logout">Se déconnecter</Button>

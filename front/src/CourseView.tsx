@@ -111,6 +111,10 @@ export default observer(function CourseView({ course }: CourseViewProps) {
 
     const isLoaded = !!course;
 
+    const onArchiveButtonClick = useCallback(() => {
+        course?.archive();
+    }, [course?.id]);
+
     const onDeleteButtonClick = useCallback(() => {
         if (course?.id && confirm(`Voulez vous vraiment supprimer "${course.name}" ?`)) {
             course?.delete();
@@ -134,6 +138,7 @@ export default observer(function CourseView({ course }: CourseViewProps) {
             <Divider/>
             <CardActions>
                 <Button disabled={!isLoaded} size="small" to={isLoaded ? `/courses/${course!!.id}` : undefined} component={isLoaded ? Link : undefined}>Modifier</Button>
+                <Button disabled={!isLoaded} size="small" onClick={onArchiveButtonClick}>Archiver</Button>
                 <Button disabled={!isLoaded} size="small" onClick={onDeleteButtonClick}>Supprimer</Button>
             </CardActions>
         </Card>

@@ -55,6 +55,7 @@ async fn launch() -> _ {
                 courses,
                 courses_insert,
                 courses_update,
+                courses_archive,
                 courses_delete,
                 timeline,
                 mark,
@@ -273,6 +274,7 @@ pub struct Course {
     j_end: NaiveDate,
     recurrence: String,
     cache_key: Uuid,
+    archived: bool,
 }
 
 #[derive(serde::Serialize)]
@@ -305,8 +307,14 @@ impl From<(Course, Vec<(NaiveDate, Option<String>)>)> for CourseAndOccurrences {
     }
 }
 
-#[get("/api/courses")]
-async fn courses(db: DbConn, a: Account) -> ApiResult<Vec<CourseAndOccurrences>> {
+#[get("/api/courses?<archived>")]
+async fn courses(
+    db: DbConn,
+    a: Account,
+    archived: Option<bool>,
+) -> ApiResult<Vec<CourseAndOccurrences>> {
+    let archived = archived.unwrap_or(false);
+
     let courses = with_db!(db => {
         use schema::courses::dsl as c_dsl;
         use schema::events::dsl as e_dsl;
@@ -314,7 +322,7 @@ async fn courses(db: DbConn, a: Account) -> ApiResult<Vec<CourseAndOccurrences>>
         try_block! {
             let mut courses: Vec<CourseAndOccurrences> = c_dsl::courses
                 .order_by(c_dsl::j_0.asc())
-                .filter(c_dsl::owner.eq(a.id))
+                .filter(c_dsl::owner.eq(a.id).and(c_dsl::archived.eq(archived)))
                 .load::<Course>(db)?
                 .into_iter()
                 .map(|c| CourseAndOccurrences::from((c, Vec::new())))
@@ -406,8 +414,6 @@ struct CourseMod {
 async fn courses_update(db: DbConn, a: Account, id: Uuid, json: Json<CourseMod>) -> ApiResult {
     let json = json.into_inner();
 
-    assert!(json.name.is_some() || json.description.is_some());
-
     with_db!(db => || {
         use schema::courses::dsl as c_dsl;
         use schema::events::dsl as e_dsl;
@@ -466,6 +472,29 @@ async fn courses_update(db: DbConn, a: Account, id: Uuid, json: Json<CourseMod>)
     ApiResult::success()
 }
 
+#[put("/api/courses/<id>/archived", data = "<archived>")]
+async fn courses_archive(db: DbConn, a: Account, id: Uuid, archived: Json<bool>) -> ApiResult {
+    let archived = archived.into_inner();
+
+    with_db!(db => {
+        use schema::courses::dsl as c_dsl;
+
+        use schema::courses as courses_table;
+        #[derive(AsChangeset)]
+        #[table_name = "courses_table"]
+        struct CourseChangeset {
+            archived: bool,
+        }
+
+        diesel::update(c_dsl::courses)
+            .set(CourseChangeset { archived })
+            .filter(c_dsl::owner.eq(a.id).and(c_dsl::id.eq(id)))
+            .execute(db)
+    }?);
+
+    ApiResult::success()
+}
+
 #[delete("/api/courses/<id>")]
 async fn courses_delete(db: DbConn, a: Account, id: Uuid) -> ApiResult {
     with_db!(db => {
@@ -519,7 +548,7 @@ macro_rules! event_and_course_select {
                 e_dsl::date,
                 e_dsl::cache_key,
             ))
-            .filter(e_dsl::course.eq(c_dsl::id))
+            .filter(e_dsl::course.eq(c_dsl::id).and(c_dsl::archived.eq(false)))
             .order_by(e_dsl::date.asc())
             .then_order_by(e_dsl::j.asc())
     }};

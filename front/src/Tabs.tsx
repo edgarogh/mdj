@@ -7,6 +7,7 @@ import React from "react";
 import {Link, useRouteMatch} from "react-router-dom";
 import {useBottomButtonProps} from "./BottomButton";
 import {useNonNullMemo} from "./utils";
+import * as routes from './routes';
 
 const useStyles = makeStyles({
     container: {
@@ -50,7 +51,8 @@ const useStyles = makeStyles({
 export default function Tabs() {
     const classes = useStyles();
 
-    const routeMatch = useRouteMatch(['/courses/:id', '/courses', '/settings', '/']);
+    // @ts-ignore
+    const routeMatch = useRouteMatch([routes.TAB_COURSES, routes.TAB_SETTINGS, routes.TAB_TIMELINE]);
     const currentTab = routeMatch?.path;
 
     const bottomButtonProps = useBottomButtonProps();
@@ -64,9 +66,9 @@ export default function Tabs() {
                 showLabels
                 aria-disabled={!!bottomButtonProps}
             >
-                <BottomNavigationAction label={"Fil"} icon={<CalendarViewDayRoundedIcon />} value="/" to="/" component={Link} />
-                <BottomNavigationAction label={"Cours"} icon={<LessonsIcon />} value="/courses" to="/courses" component={Link} />
-                <BottomNavigationAction label={"Paramètres"} icon={<SettingsIcon />} value="/settings" to="/settings" component={Link} />
+                <BottomNavigationAction label={"Fil"} icon={<CalendarViewDayRoundedIcon />} value={routes.TAB_TIMELINE} to="/" component={Link} />
+                <BottomNavigationAction label={"Cours"} icon={<LessonsIcon />} value={routes.TAB_COURSES} to="/courses" component={Link} />
+                <BottomNavigationAction label={"Paramètres"} icon={<SettingsIcon />} value={routes.TAB_SETTINGS} to="/settings" component={Link} />
             </BottomNavigation>
             <div
                 className={`${classes.buttonContainer} ${bottomButtonProps ? classes.buttonContainerVisible : ''}`}

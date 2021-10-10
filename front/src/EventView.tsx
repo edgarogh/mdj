@@ -28,6 +28,7 @@ const useStyles = makeStyles((theme) => ({
     },
     chip: {
         marginLeft: '12px',
+        pointerEvents: 'none',
     },
     summary: {
         display: 'flex',

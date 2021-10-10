@@ -16,6 +16,7 @@ table! {
         j_end -> Date,
         recurrence -> Varchar,
         cache_key -> Uuid,
+        archived -> Bool,
     }
 }
 
@@ -31,15 +32,6 @@ table! {
 }
 
 table! {
-    recurrences (id) {
-        id -> Uuid,
-        owner -> Nullable<Uuid>,
-        name -> Nullable<Varchar>,
-        pattern -> Varchar,
-    }
-}
-
-table! {
     sessions (token) {
         token -> Varchar,
         account -> Uuid,
@@ -49,7 +41,11 @@ table! {
 
 joinable!(courses -> accounts (owner));
 joinable!(events -> accounts (owner));
-joinable!(recurrences -> accounts (owner));
 joinable!(sessions -> accounts (account));
 
-allow_tables_to_appear_in_same_query!(accounts, courses, events, recurrences, sessions,);
+allow_tables_to_appear_in_same_query!(
+    accounts,
+    courses,
+    events,
+    sessions,
+);

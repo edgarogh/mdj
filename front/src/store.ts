@@ -20,8 +20,8 @@ class Api {
         return await fetch(this.account).then(res => res.json());
     }
 
-    async fetchCourses(): Promise<any> {
-        return await fetch(this.courses).then(res => res.json());
+    async fetchCourses(archived = false): Promise<any> {
+        return await fetch(this.courses + '?archived=' + archived).then(res => res.json());
     }
 
     async createCourse(course: any): Promise<any> {
@@ -46,6 +46,13 @@ class Api {
                 j_end: course.j_end,
                 recurrence: course.recurrence,
             }),
+        }).then(res => res.json());
+    }
+
+    async archiveCourse(id: string, archived = true) {
+        await fetch(this.courses_id + id + '/archived', {
+            method: 'PUT',
+            body: JSON.stringify(archived),
         }).then(res => res.json());
     }
 
@@ -148,10 +155,16 @@ class CourseStore {
         this.rootStore.api.createCourse(newCourse).then(({ id, occurrences }) => {
             runInAction(() => {
                 course.id = id;
-                console.log(occurrences);
                 course.occurrences = occurrences;
             });
 
+            this.rootStore.eventStore.fetchTimeline();
+        });
+    }
+
+    restoreCourse(courseId: string) {
+        this.rootStore.api.archiveCourse(courseId, false).then(() => {
+            this.loadCourses(true);
             this.rootStore.eventStore.fetchTimeline();
         });
     }
@@ -164,12 +177,12 @@ class CourseStore {
 export class Course {
     store: CourseStore;
 
-    id: string;
-    name: string;
+    id: string = '';
+    name: string = '';
     description: string | undefined = undefined;
-    j_0: Day;
-    j_end: Day;
-    recurrence: string;
+    j_0: Day = undefined as never as Day;
+    j_end: Day = undefined as never as Day;
+    recurrence: string = '';
     occurrences: [string, string][] = [];
 
     constructor(store: CourseStore, id: string) {
@@ -195,6 +208,16 @@ export class Course {
             this.store.loadCourses(true);
             this.store.rootStore.eventStore.fetchTimeline();
         });
+    }
+
+    archive() {
+        if (!this.id) return;
+        this.store.rootStore.api
+            .archiveCourse(this.id)
+            .then(() => this.store.rootStore.eventStore.fetchTimeline());
+
+        this.store.removeCourse(this);
+        this.id = '';
     }
 
     delete() {
