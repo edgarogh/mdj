@@ -6,9 +6,9 @@ import TextField from "@material-ui/core/TextField";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import {Link, useHistory, useRouteMatch} from "react-router-dom";
-import {WithBottomButton} from "./BottomButton";
+import {WithBottomButton} from "../BottomButton";
 import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
-import {useRootStore} from "./StoreProvider";
+import {useRootStore} from "../StoreProvider";
 import {observer} from "mobx-react-lite";
 
 const useStyles = makeStyles({
@@ -30,6 +30,7 @@ const useStyles = makeStyles({
 });
 
 export default observer(function CourseEdit() {
+    // @ts-ignore
     const { params: { id } } = useRouteMatch('/courses/:id');
     const history = useHistory();
 
@@ -72,14 +73,18 @@ export default observer(function CourseEdit() {
             id: course?.id || '',
             name,
             description,
-            j_0: j0,
-            j_end: jEnd,
-            recurrence,
-        };
+        } as any;
 
         if (course) {
             course.update(object);
+            if ((recurrence !== course.recurrence || j0 !== course.j_0.value || jEnd !== course.j_end.value)
+                && confirm("Êtes vous sûr·e de vouloir mettre à jour le schéma de récurrence ? Cela effacera les annotations de chaque évènement lié au cours.")) {
+                course.updateRecurrence(recurrence, j0, jEnd);
+            }
         } else {
+            object.j_0 = j0;
+            object.j_end = jEnd;
+            object.recurrence = recurrence;
             store.courseStore.createCourse(object);
         }
 

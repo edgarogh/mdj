@@ -49,6 +49,17 @@ class Api {
         }).then(res => res.json());
     }
 
+    async updateCourseRecurrence(courseId: string, recurrence: string, j0: string, jEnd: string) {
+        await fetch(this.courses_id + courseId + '/recurrence', {
+            method: 'POST',
+            body: JSON.stringify({
+                recurrence,
+                j_0: j0,
+                j_end: jEnd,
+            }),
+        }).then(res => res.json());
+    }
+
     async archiveCourse(id: string, archived = true) {
         await fetch(this.courses_id + id + '/archived', {
             method: 'PUT',
@@ -67,7 +78,7 @@ class Api {
     }
 
     async markEvent(courseId: string, j: number, mark: string): Promise<void> {
-        await fetch(this.courses_id + courseId + '/events/' + j, {
+        await fetch(this.courses_id + courseId + '/events/' + j + '/marking', {
             method: 'PUT',
             body: mark,
         }).then((res) => res.json());
@@ -115,6 +126,10 @@ class CourseStore {
         this.loadCourses();
     }
 
+    sort() {
+        this.courses.sort((a, b) => (a.j_0.toUtc().getTime() - b.j_0.toUtc().getTime()));
+    }
+
     findCourse(courseId: string) {
         return this.courses.find(({ id }) => id === courseId);
     }
@@ -147,7 +162,7 @@ class CourseStore {
         course.j_0 = new Day(newCourse.j_0);
         course.j_end = new Day(newCourse.j_end);
         course.recurrence = newCourse.recurrence;
-        course.occurrences = [[newCourse.j_0, ""]];
+        course.occurrences_ = [[newCourse.j_0, 0, ""]];
 
         this.courses.push(course);
         this.courses.sort((a, b) => (a.j_0.toUtc().getTime() - b.j_0.toUtc().getTime()));
@@ -155,7 +170,7 @@ class CourseStore {
         this.rootStore.api.createCourse(newCourse).then(({ id, occurrences }) => {
             runInAction(() => {
                 course.id = id;
-                course.occurrences = occurrences;
+                course.occurrences_ = occurrences;
             });
 
             this.rootStore.eventStore.fetchTimeline();
@@ -183,7 +198,21 @@ export class Course {
     j_0: Day = undefined as never as Day;
     j_end: Day = undefined as never as Day;
     recurrence: string = '';
-    occurrences: [string, string][] = [];
+    occurrences_: [string, number, string | undefined][] = [];
+
+    get occurrences() {
+        const eventStore = this.store.rootStore.eventStore;
+
+        return this.occurrences_.map(([date, j, marking]) => new Occurrence(
+            eventStore,
+            {
+                course: this.id,
+                j,
+                marking,
+                date,
+            },
+        ));
+    }
 
     constructor(store: CourseStore, id: string) {
         makeAutoObservable(this, { store: false });
@@ -194,17 +223,30 @@ export class Course {
     updateFromJson(json: any) {
         this.name = json.name;
         this.description = json.description;
-        this.j_0 = new Day(json.j_0);
-        this.j_end = new Day(json.j_end);
-        this.recurrence = json.recurrence;
-        this.occurrences = json.occurrences || [];
+        this.j_0 = typeof json.j_0 === 'string' ? new Day(json.j_0) : this.j_0;
+        this.j_end = typeof json.j_end === 'string' ? new Day(json.j_end) : this.j_end;
+        this.recurrence = json.recurrence || this.recurrence;
+        this.occurrences_ = json.occurrences || this.occurrences_;
 
-        this.store.courses.sort((a, b) => (a.j_0.toUtc().getTime() - b.j_0.toUtc().getTime()));
+        this.store.sort();
     }
 
     update(json: any) {
         this.updateFromJson(json);
         this.store.rootStore.api.updateCourse(json).then(() => {
+            this.store.loadCourses(true);
+            this.store.rootStore.eventStore.fetchTimeline();
+        });
+
+        this.store.sort();
+    }
+
+    updateRecurrence(recurrence: string, j0: string, jEnd: string) {
+        this.recurrence = recurrence;
+        this.j_0 = new Day(j0);
+        this.j_end = new Day(jEnd);
+        this.occurrences_ = [];
+        this.store.rootStore.api.updateCourseRecurrence(this.id, recurrence, j0, jEnd).then(() => {
             this.store.loadCourses(true);
             this.store.rootStore.eventStore.fetchTimeline();
         });
@@ -224,6 +266,27 @@ export class Course {
         if (!this.id) return;
         this.store.rootStore.api.deleteCourse(this.id).then(() => this.store.rootStore.eventStore.fetchTimeline());
         this.store.removeCourse(this);
+    }
+}
+
+export class Occurrence {
+    eventStore: EventStore;
+    eventJson: any = {};
+
+    constructor(store: EventStore, eventJson: any) {
+        makeAutoObservable(this, { eventStore: false });
+        this.eventStore = store;
+        this.eventJson = eventJson;
+    }
+
+    get event() {
+        const event = this
+            .eventStore
+            .timeline
+            .find(te => te.courseId === this.eventJson.course && te.j === this.eventJson.j);
+
+        if (event) return event;
+        else return new Event(this.eventStore, this.eventJson);
     }
 }
 
@@ -280,6 +343,10 @@ export class Event {
 
     get course() {
         return this.store.rootStore.courseStore.findCourse(this.courseId) || null;
+    }
+
+    get isPast() {
+        return this.date.isBefore(Day.today());
     }
 
     constructor(store: EventStore, json: any) {

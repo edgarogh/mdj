@@ -8,12 +8,12 @@ diesel::joinable!(crate::schema::events -> crate::schema::courses (course));
 #[derive(Insertable)]
 #[table_name = "events_table"]
 pub struct NewEvent {
-    owner: Uuid,
-    course: Uuid,
-    j: i64,
-    marking: Option<String>,
+    pub owner: Uuid,
+    pub course: Uuid,
+    pub j: i64,
+    pub marking: Option<String>,
     pub date: NaiveDate,
-    cache_key: Uuid,
+    pub cache_key: Uuid,
 }
 
 #[derive(Debug)]

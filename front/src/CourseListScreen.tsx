@@ -1,6 +1,6 @@
 import Button from "@material-ui/core/Button";
 import {Link} from "react-router-dom";
-import CourseList from "./CourseList";
+import CourseList from "./course/CourseList";
 import AddIcon from "@material-ui/icons/Add";
 import React from "react";
 import {useRootStore} from "./StoreProvider";

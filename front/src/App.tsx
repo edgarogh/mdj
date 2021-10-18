@@ -3,7 +3,7 @@ import Container from "@material-ui/core/Container";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import React from "react";
 import {BottomButtonProvider} from "./BottomButton";
-import CourseEdit from "./CourseEdit";
+import CourseEdit from "./course/CourseEdit";
 import CourseListScreen from "./CourseListScreen";
 import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
 import Settings from "./Settings";

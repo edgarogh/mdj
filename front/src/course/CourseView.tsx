@@ -1,23 +1,27 @@
-import "./transitions/chip-fade.scss";
+import "../transitions/chip-fade.scss";
 import {CardActions, makeStyles} from "@material-ui/core";
 import Chip from "@material-ui/core/Chip";
 import CardHeader from "@material-ui/core/CardHeader";
 import Card from "@material-ui/core/Card";
 import Skeleton from "@material-ui/lab/Skeleton";
 import React, {useCallback, useEffect, useMemo, useState} from "react";
-import {Link, useHistory} from "react-router-dom";
-import {Course} from "./store";
+import {Link} from "react-router-dom";
+import {Course, Occurrence} from "../store";
 import Button from "@material-ui/core/Button";
 import Divider from "@material-ui/core/Divider";
 import {CSSTransition, TransitionGroup} from "react-transition-group";
-import Day from "./Day";
 import {observer} from "mobx-react-lite";
+import {markingDecoration} from "../utils";
+import OccurrenceMenu from "./OccurrenceMenu";
 
 export interface CourseViewProps {
     course: Course | undefined,
 }
 
 const useStyles = makeStyles((theme) => ({
+    occurrenceChipBefore: {
+        background: 'rgb(248, 248, 248)',
+    },
     card: {
         margin: '8px',
     },
@@ -33,26 +37,29 @@ const useStyles = makeStyles((theme) => ({
 
 interface OccurrenceChipProps {
     course: Course,
-    date: Day,
-    marking: string,
+    occurrence: Occurrence,
+    onClick?: (p: [HTMLElement, Occurrence]) => void,
 }
 
-function OccurrenceChip(props: OccurrenceChipProps) {
-    const history = useHistory();
+const OccurrenceChip = observer(function OccurrenceChip(props: OccurrenceChipProps) {
+    const classes = useStyles();
+    const isPast = props.occurrence.event.isPast;
 
-    let onClick = useCallback(() => {
-        const id = `tl-event-${props.course.id}-${props.date.value}`;
-        history.push('/#' + id);
-    }, [props.course.id, props.date.value]);
+    let onClick = useCallback((e) => {
+        props.onClick?.([e.target, props.occurrence]);
+    }, [props.course.id]);
+
+    const [markingStyle, markingSuffix] = markingDecoration(props.occurrence.event.marking);
 
     return (
         <Chip
-            disabled={props.date.isBefore(Day.today())}
+            className={isPast ? classes.occurrenceChipBefore : undefined}
+            style={markingStyle}
             onClick={onClick}
-            label={props.date.value}
+            label={<>{props.occurrence.event.date.value}{markingSuffix}</>}
         />
     )
-}
+});
 
 interface OccurrenceChipSectionProps {
     course: Course,
@@ -84,15 +91,18 @@ const OccurrenceChipSection = observer(function OccurrenceChipSection({ course }
     const moreLessLabel = expanded ? "Voir moins" : "Voir plus...";
     const occurrences = expanded ? course.occurrences : occurrencesSlice;
 
+    const [menuAnchor, setMenuAnchor] = useState<undefined | [HTMLElement, Occurrence]>(undefined);
+    const onCloseMenu = useCallback(() => setMenuAnchor(undefined), [setMenuAnchor]);
+
     return <>
         <TransitionGroup component={null}>
-            {occurrences.map(([date, marking]) => (
+            {occurrences.map((occ) => (
                 <CSSTransition
-                    key={date}
+                    key={occ.event.key}
                     timeout={200}
                     classNames="chip-fade"
                 >
-                    <OccurrenceChip course={course} date={new Day(date)} marking={marking}/>
+                    <OccurrenceChip course={course} occurrence={occ} onClick={setMenuAnchor}/>
                 </CSSTransition>
             ))}
         </TransitionGroup>
@@ -103,6 +113,7 @@ const OccurrenceChipSection = observer(function OccurrenceChipSection({ course }
             onClick={onSeeMoreLess}
             label={moreLessLabel}
         />}
+        <OccurrenceMenu payload={menuAnchor} onClose={onCloseMenu}/>
     </>;
 });
 

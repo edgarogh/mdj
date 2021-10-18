@@ -13,6 +13,7 @@ import React, {useCallback, useMemo, useState} from "react";
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import {observer} from "mobx-react-lite";
 import {Event} from "./store";
+import {markingDecoration} from "./utils";
 
 let id = 0;
 
@@ -57,10 +58,6 @@ export default observer(function EventView({ hideDate, event }: EventViewProps) 
     const name = event?.course?.name;
     const marking = event?.marking;
 
-    const started = marking === 'started';
-    const furtherLearningRequired = marking === 'further_learning_required';
-    const done = marking === 'done';
-
     const id = useMemo(() => event?.course && (
         `tl-event-${event.course.id}-${event.date.value}`
     ), [event?.course?.id, event?.date]);
@@ -71,6 +68,8 @@ export default observer(function EventView({ hideDate, event }: EventViewProps) 
 
     const ref = (ref: HTMLDivElement | null) => idInHash && ref?.scrollIntoView(SCROLL_ARGS);
     const rippleRef = (ref: ButtonBaseActions | null) => idInHash && ref?.focusVisible();
+
+    const [markingStyle, markingSuffix] = markingDecoration(marking);
 
     return (
         <Accordion
@@ -84,12 +83,11 @@ export default observer(function EventView({ hideDate, event }: EventViewProps) 
                 {event && name ? <div className={classes.summary}>
                     <Typography
                         component="h4"
-                        style={{ textDecoration: done ? 'line-through' : 'inherit' }}
+                        style={markingStyle}
                         className={classes.heading}
                     >
                         {name}
-                        {started && '*'}
-                        {furtherLearningRequired && '?'}
+                        {markingSuffix}
                         <Chip className={classes.chip} variant="outlined" size="small" label={`J+${event.j}`}/>
                     </Typography>
                     <Typography className={classes.secondaryHeading}>

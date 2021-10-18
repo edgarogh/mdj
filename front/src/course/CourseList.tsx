@@ -1,7 +1,7 @@
 import CourseView from "./CourseView";
 import React from "react";
 import {observer} from "mobx-react-lite";
-import {Course} from "./store";
+import {Course} from "../store";
 
 export interface CourseListProps {
     courses: Course[] | undefined;
