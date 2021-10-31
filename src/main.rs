@@ -189,7 +189,9 @@ async fn login(
     db: DbConn,
     form: Form<LoginForm>,
     cookies: &CookieJar<'_>,
-) -> Result<Redirect, String> {
+) -> Result<Redirect, (Status, rocket::response::content::Json<&'static str>)> {
+    use rocket::response::content::Json as ContentJson;
+
     let form = form.into_inner();
     let email = form.email;
 
@@ -200,7 +202,12 @@ async fn login(
             .filter(dsl::email.eq(email))
             .first::<Account>(db)
     })
-    .map_err(|err| format!("Database error: {}", err))?;
+    .map_err(|_| {
+        (
+            Status::InternalServerError,
+            ContentJson(r#"{"error_kind":"database"}"#),
+        )
+    })?;
 
     if bcrypt::verify(&form.password, &account.password.unwrap_or_default()).unwrap_or_default() {
         let account_id = account.id;
@@ -237,10 +244,16 @@ async fn login(
                 );
                 Ok(Redirect::to("/"))
             }
-            Err(err) => Err(format!("Database error while inserting token: {}", err)),
+            Err(_) => Err((
+                Status::InternalServerError,
+                ContentJson(r#"{"error_kind":"database"}"#),
+            )),
         }
     } else {
-        Err("Creds invalides".into())
+        Err((
+            Status::Unauthorized,
+            ContentJson(r#"{"error_kind":"invalid_credentials"}"#),
+        ))
     }
 }
 

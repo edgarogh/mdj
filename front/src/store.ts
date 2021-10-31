@@ -2,13 +2,17 @@ import {makeAutoObservable, runInAction} from "mobx";
 import Day from "./Day";
 
 class Api {
-    private account: string;
-    private courses: string;
-    private courses_id: string;
-    private timeline: string;
-    private timeline_after: string;
+    private readonly login_url: string;
+    private readonly account: string;
+    private readonly courses: string;
+    private readonly courses_id: string;
+    private readonly timeline: string;
+    private readonly timeline_after: string;
+
+    public onDisconnectedHandler: (() => void) | null = null;
 
     constructor(baseUrl: string) {
+        this.login_url = baseUrl + 'login';
         this.account = baseUrl + 'api/account';
         this.courses = baseUrl + 'api/courses';
         this.courses_id = baseUrl + 'api/courses/';
@@ -16,28 +20,56 @@ class Api {
         this.timeline_after = baseUrl + 'api/timeline?after=';
     }
 
-    async fetchAccountInfo(): Promise<any> {
-        return await fetch(this.account).then(res => res.json());
+    private fetch(input: RequestInfo, init?: RequestInit | undefined): Promise<any | null> {
+        return fetch(input, init).then(res => {
+            switch (res.status) {
+                case 200: return res.json();
+                case 401: {
+                    this.onDisconnectedHandler?.();
+                    return null;
+                }
+                default: throw res;
+            }
+        });
     }
 
-    async fetchCourses(archived = false): Promise<any> {
-        return await fetch(this.courses + '?archived=' + archived).then(res => res.json());
+    async login(form: FormData): Promise<true | 'invalid_response' | 'database' | 'invalid_credentials'> {
+        return await fetch(this.login_url, {
+            method: 'POST',
+            body: form,
+        }).then(async res => {
+            if (res.redirected) {
+                return true;
+            } else {
+                const errorKind = (await res.json())?.error_kind as 'database' | 'invalid_credentials';
+                if (errorKind) return errorKind;
+                else return 'invalid_response';
+            }
+        });
     }
 
-    async createCourse(course: any): Promise<any> {
+    async fetchAccountInfo(): Promise<Record<string, any> | null> {
+        return await this.fetch(this.account);
+    }
+
+    async fetchCourses(archived = false): Promise<Record<string, any>[] | null> {
+        return await this.fetch(this.courses + '?archived=' + archived);
+    }
+
+    async createCourse(course: any): Promise<Record<string, any> | null> {
         const body = JSON.stringify(course);
 
-        return await fetch(this.courses, {
+        return await this.fetch(this.courses, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body,
-        }).then(res => res.json());
+        });
     }
 
     async updateCourse(course: any) {
-        await fetch(this.courses_id + course.id, {
+        await this.fetch(this.courses_id + course.id, {
             method: 'PUT',
             body: JSON.stringify({
                 name: course.name,
@@ -46,42 +78,42 @@ class Api {
                 j_end: course.j_end,
                 recurrence: course.recurrence,
             }),
-        }).then(res => res.json());
+        });
     }
 
     async updateCourseRecurrence(courseId: string, recurrence: string, j0: string, jEnd: string) {
-        await fetch(this.courses_id + courseId + '/recurrence', {
+        await this.fetch(this.courses_id + courseId + '/recurrence', {
             method: 'POST',
             body: JSON.stringify({
                 recurrence,
                 j_0: j0,
                 j_end: jEnd,
             }),
-        }).then(res => res.json());
+        });
     }
 
     async archiveCourse(id: string, archived = true) {
-        await fetch(this.courses_id + id + '/archived', {
+        await this.fetch(this.courses_id + id + '/archived', {
             method: 'PUT',
             body: JSON.stringify(archived),
-        }).then(res => res.json());
+        });
     }
 
     async deleteCourse(id: string): Promise<void> {
-        await fetch(this.courses_id + id, {
+        await this.fetch(this.courses_id + id, {
             method: 'DELETE',
-        }).then(res => res.text());
+        });
     }
 
-    async fetchTimeline(): Promise<any[]> {
-        return fetch(this.timeline, { credentials: 'include' }).then(res => res.json());
+    async fetchTimeline(): Promise<Record<string, any>[] | null> {
+        return this.fetch(this.timeline, { credentials: 'include' });
     }
 
     async markEvent(courseId: string, j: number, mark: string): Promise<void> {
-        await fetch(this.courses_id + courseId + '/events/' + j + '/marking', {
+        await this.fetch(this.courses_id + courseId + '/events/' + j + '/marking', {
             method: 'PUT',
             body: mark,
-        }).then((res) => res.json());
+        });
     }
 }
 
@@ -106,9 +138,19 @@ export class RootStore {
         this.courseStore = new CourseStore(this);
         this.eventStore = new EventStore(this);
 
+        this.fetchAll();
+    }
+
+    fetchAll() {
+        this.fetchAccountInfo();
+        this.courseStore.loadCourses();
+        this.eventStore.fetchTimeline();
+    }
+
+    fetchAccountInfo() {
         this.api.fetchAccountInfo().then((ai) => {
-            runInAction(() => {
-                this.accountInfo = ai;
+            if (ai) runInAction(() => {
+                this.accountInfo = ai as any;
             });
         });
     }
@@ -123,7 +165,6 @@ class CourseStore {
     constructor(rootStore) {
         makeAutoObservable(this, { rootStore: false, findCourse: false });
         this.rootStore = rootStore;
-        this.loadCourses();
     }
 
     sort() {
@@ -137,7 +178,7 @@ class CourseStore {
     loadCourses(clear = false) {
         this.isLoading = true;
         this.rootStore.api.fetchCourses().then((courses) => {
-            runInAction(() => {
+            if (courses) runInAction(() => {
                 if (clear) this.courses = [];
                 for (const course of courses) this.updateCourseFromServer(course);
                 this.isLoading = false;
@@ -167,10 +208,10 @@ class CourseStore {
         this.courses.push(course);
         this.courses.sort((a, b) => (a.j_0.toUtc().getTime() - b.j_0.toUtc().getTime()));
 
-        this.rootStore.api.createCourse(newCourse).then(({ id, occurrences }) => {
-            runInAction(() => {
-                course.id = id;
-                course.occurrences_ = occurrences;
+        this.rootStore.api.createCourse(newCourse).then((newCourse) => {
+            if (newCourse) runInAction(() => {
+                course.id = newCourse.id;
+                course.occurrences_ = newCourse.occurrences;
             });
 
             this.rootStore.eventStore.fetchTimeline();
@@ -299,13 +340,12 @@ class EventStore {
     constructor(rootStore) {
         makeAutoObservable(this, { rootStore: false });
         this.rootStore = rootStore;
-        this.fetchTimeline();
     }
 
     fetchTimeline() {
         this.isLoading = true;
         this.rootStore.api.fetchTimeline().then((events) => {
-            runInAction(() => {
+            if (events) runInAction(() => {
                 this.isLoading = false;
                 this.timeline.length = 0;
                 events.forEach((e) => {

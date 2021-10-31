@@ -1,16 +1,18 @@
 import {makeStyles} from "@material-ui/core";
 import Container from "@material-ui/core/Container";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import React from "react";
+import React, {useEffect} from "react";
+import {BrowserRouter as Router, Route, Switch, useHistory} from "react-router-dom";
 import {BottomButtonProvider} from "./BottomButton";
+import CalendarScreen from "./CalendarScreen";
 import CourseEdit from "./course/CourseEdit";
 import CourseListScreen from "./CourseListScreen";
-import {BrowserRouter as Router, Route, Switch} from "react-router-dom";
+import LoginScreen from "./LoginScreen";
+import * as routes from "./routes";
 import Settings from "./Settings";
+import {useRootStore} from "./StoreProvider";
 import Tabs from "./Tabs";
 import Timeline from "./Timeline";
-import CalendarScreen from "./CalendarScreen";
-import * as routes from './routes';
 
 const useStyles = makeStyles({
     container: {
@@ -26,6 +28,26 @@ const useStyles = makeStyles({
     },
 });
 
+/**
+ * Imperative component that captures `react-router`'s history object and creates an handler for when the API returns
+ * status code "401 Unauthorized", which would indicate that the current session is invalid.
+ */
+function SetupUnauthorizedHandler() {
+    const { api } = useRootStore();
+    const history = useHistory();
+
+    useEffect(() => {
+        api.onDisconnectedHandler = () => {
+           if (history.location.pathname !== routes.LOGIN) {
+               // TODO "Your session has expired" snackbar
+               history.push(routes.LOGIN);
+           }
+        };
+    }, []);
+
+    return <></>;
+}
+
 export default function App() {
     const classes = useStyles();
 
@@ -34,9 +56,13 @@ export default function App() {
             <CssBaseline/>
             <BottomButtonProvider>
             <Router>
+                <SetupUnauthorizedHandler />
                 <Container className={classes.container} maxWidth="sm">
                     <main className={classes.main}>
                         <Switch>
+                            <Route path={routes.LOGIN}>
+                                <LoginScreen/>
+                            </Route>
                             <Route path={routes.CALENDAR}>
                                 <CalendarScreen/>
                             </Route>

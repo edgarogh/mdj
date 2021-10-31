@@ -111,7 +111,7 @@ export default observer(function Settings() {
                 <ArchiveDialogs/>
             </Paper>
             <div className={classes.disconnectButtonContainer}>
-                <Button startIcon={<ExitToApp/>} href="/logout">Se déconnecter</Button>
+                <Button disabled={!accountId} startIcon={<ExitToApp/>} href={routes.LOGOUT}>Se déconnecter</Button>
             </div>
         </div>
     );

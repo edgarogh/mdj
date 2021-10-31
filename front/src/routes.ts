@@ -1,3 +1,5 @@
+export const LOGIN = '/login';
+export const LOGOUT = '/logout';
 export const TIMELINE = '/';
 export const CALENDAR = '/calendar';
 export const TAB_TIMELINE = [TIMELINE, CALENDAR] as const;

@@ -1,5 +1,8 @@
 import React, {useState} from "react";
 
+// TODO find an alternative that doesn't make React angry at me
+export const VOID_URL = "javascript:void 0";
+
 /**
  * Memoises a value retaining only non-undefined ones. In other words, it keeps an internal state that is only updated
  * to the value of `value` when `value` is not null. This state is returned, and may be undefined if it is never
