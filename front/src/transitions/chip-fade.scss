@@ -1,0 +1,17 @@
+.chip-fade-enter {
+    opacity: 0.01;
+
+    &.chip-fade-enter-active {
+        opacity: 1;
+        transition: opacity 200ms ease-in;
+    }
+}
+
+.chip-fade-exit {
+    opacity: 1;
+
+    &.chip-fade-exit-active {
+        opacity: 0.01;
+        transition: opacity 200ms ease-in;
+    }
+}

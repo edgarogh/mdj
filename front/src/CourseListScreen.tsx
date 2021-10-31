@@ -1,18 +1,22 @@
 import Button from "@material-ui/core/Button";
 import {Link} from "react-router-dom";
-import {useApi} from "./Api";
-import CourseView from "./CourseView";
+import CourseList from "./course/CourseList";
 import AddIcon from "@material-ui/icons/Add";
+import React from "react";
+import {useRootStore} from "./StoreProvider";
+import {observer} from "mobx-react-lite";
 
-export default function CourseList() {
-    const { courses, fetchCourses } = useApi();
+export default observer(function CourseListScreen() {
+    const { courseStore } = useRootStore();
+
+    const courses = courseStore.courses;
 
     return (
         <>
             <div style={{ margin: '8px' }}>
                 <Button
                     style={{ width: '100%' }}
-                    disabled={!courses}
+                    disabled={courseStore.isLoading}
                     variant="outlined"
                     size="large"
                     startIcon={<AddIcon />}
@@ -22,17 +26,7 @@ export default function CourseList() {
                     Ajouter un cours
                 </Button>
             </div>
-            {!!courses ? (
-                courses.length === 0 ? (
-                    "Aucun cours"
-                ) : (
-                    courses.map(c => (
-                        <CourseView key={c.id} course={c}/>
-                    ))
-                )
-            ) : (
-                <CourseView key="_" course={undefined}/>
-            )}
+            <CourseList courses={courseStore.isLoading ? undefined : courses}/>
         </>
     );
-}
+});

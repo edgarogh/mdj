@@ -1,14 +1,14 @@
-import {makeStyles} from "@material-ui/core";
-import Button from "@material-ui/core/Button";
-import {createContext, ReactChildren, useContext, useEffect, useMemo, useState} from "react";
+import React, {createContext, ReactChildren, useContext, useEffect, useMemo, useState} from "react";
 
 export interface WithBottomButtonProps {
-    label: string,
+    instance: any;
+    label: string;
+    disabled: boolean;
     onClick();
 }
 
 export interface BottomButtonContextType {
-    buttonProps: WithBottomButtonProps | undefined,
+    buttonProps: WithBottomButtonProps | undefined;
     update(props: WithBottomButtonProps);
 }
 
@@ -48,5 +48,5 @@ export function WithBottomButton(props: WithBottomButtonProps) {
         return context.update.bind(undefined, undefined);
     }, [props.label, props.onClick]);
 
-    return false;
+    return <></>;
 }

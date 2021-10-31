@@ -1,5 +1,5 @@
 import Typography from "@material-ui/core/Typography";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 
 const J = [0, 1, 3, 7, 14, 28];
 

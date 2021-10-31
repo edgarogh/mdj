@@ -4,6 +4,8 @@ extern crate diesel;
 extern crate diesel_migrations;
 #[macro_use]
 extern crate rocket;
+#[macro_use]
+extern crate try_block;
 
 mod api_result;
 mod asset;
@@ -53,6 +55,8 @@ async fn launch() -> _ {
                 courses,
                 courses_insert,
                 courses_update,
+                courses_update_recurrence,
+                courses_archive,
                 courses_delete,
                 timeline,
                 mark,
@@ -272,14 +276,70 @@ pub struct Course {
     j_end: NaiveDate,
     recurrence: String,
     cache_key: Uuid,
+    archived: bool,
 }
 
-#[get("/api/courses")]
-async fn courses(db: DbConn, a: Account) -> ApiResult<Vec<Course>> {
-    let courses = with_db!(db => {
-        use schema::courses::dsl;
+#[derive(serde::Serialize)]
+pub struct CourseAndOccurrences {
+    id: Uuid,
+    author: Uuid,
+    name: String,
+    description: Option<String>,
+    j_0: NaiveDate,
+    j_end: NaiveDate,
+    recurrence: String,
+    cache_key: Uuid,
 
-        dsl::courses.order_by(dsl::j_0.asc()).filter(dsl::owner.eq(a.id)).load::<Course>(db)
+    occurrences: Vec<(NaiveDate, i64, Option<String>)>,
+}
+
+impl From<(Course, Vec<(NaiveDate, i64, Option<String>)>)> for CourseAndOccurrences {
+    fn from((c, occurrences): (Course, Vec<(NaiveDate, i64, Option<String>)>)) -> Self {
+        Self {
+            id: c.id,
+            author: c.id,
+            name: c.name,
+            description: c.description,
+            j_0: c.j_0,
+            j_end: c.j_end,
+            recurrence: c.recurrence,
+            cache_key: c.cache_key,
+            occurrences,
+        }
+    }
+}
+
+#[get("/api/courses?<archived>")]
+async fn courses(
+    db: DbConn,
+    a: Account,
+    archived: Option<bool>,
+) -> ApiResult<Vec<CourseAndOccurrences>> {
+    let archived = archived.unwrap_or(false);
+
+    let courses = with_db!(db => {
+        use schema::courses::dsl as c_dsl;
+        use schema::events::dsl as e_dsl;
+
+        try_block! {
+            let mut courses: Vec<CourseAndOccurrences> = c_dsl::courses
+                .order_by(c_dsl::j_0.asc())
+                .filter(c_dsl::owner.eq(a.id).and(c_dsl::archived.eq(archived)))
+                .load::<Course>(db)?
+                .into_iter()
+                .map(|c| CourseAndOccurrences::from((c, Vec::new())))
+                .collect::<Vec<_>>();
+
+            for course in &mut courses {
+                course.occurrences = e_dsl::events
+                    .order_by(e_dsl::date.asc())
+                    .filter(e_dsl::course.eq(course.id))
+                    .select((e_dsl::date, e_dsl::j, e_dsl::marking))
+                    .load::<(NaiveDate, i64, Option<String>)>(db)?;
+            }
+
+            Ok(courses) as Result<_, diesel::result::Error>
+        }
     }?);
 
     ApiResult::Ok(courses)
@@ -295,7 +355,11 @@ struct CourseBody {
 }
 
 #[post("/api/courses", data = "<json>")]
-async fn courses_insert(db: DbConn, a: Account, json: Json<CourseBody>) -> ApiResult<Course> {
+async fn courses_insert(
+    db: DbConn,
+    a: Account,
+    json: Json<CourseBody>,
+) -> ApiResult<CourseAndOccurrences> {
     let json = json.into_inner();
 
     let offsets = NewEvent::parse_recurrence(&json.recurrence);
@@ -330,8 +394,9 @@ async fn courses_insert(db: DbConn, a: Account, json: Json<CourseBody>) -> ApiRe
             let dates = NewEvent::from_offsets(
                 &offsets, course.author, course.id, course.j_0, course.j_end, course.cache_key
             );
+            let occurrences = dates.iter().zip(&offsets).map(|(date, o)| (date.date, *o as _, None)).collect();
             diesel::insert_into(e_dsl::events).values(dates).execute(db)?;
-            Ok(course)
+            Ok(CourseAndOccurrences::from((course, occurrences)))
         })
     }?);
 
@@ -342,44 +407,22 @@ async fn courses_insert(db: DbConn, a: Account, json: Json<CourseBody>) -> ApiRe
 struct CourseMod {
     name: Option<String>,
     description: Option<String>,
-    j_0: NaiveDate,
-    j_end: NaiveDate,
-    recurrence: String,
 }
 
 #[put("/api/courses/<id>", data = "<json>")]
 async fn courses_update(db: DbConn, a: Account, id: Uuid, json: Json<CourseMod>) -> ApiResult {
     let json = json.into_inner();
 
-    assert!(json.name.is_some() || json.description.is_some());
-
     with_db!(db => || {
         use schema::courses::dsl as c_dsl;
-        use schema::events::dsl as e_dsl;
 
         use schema::courses as courses_table;
         #[derive(AsChangeset)]
         #[table_name = "courses_table"]
-        struct CourseChangeset<'a> {
+        struct CourseChangeset {
             name: Option<String>,
             description: Option<Option<String>>,
-            j_0: Option<NaiveDate>,
-            j_end: Option<NaiveDate>,
-            recurrence: Option<&'a str>,
-            cache_key: Option<Uuid>,
         }
-
-        let (cache_key, events) = if let Some(recurrence) = Some(&json.recurrence) {
-            let cache_key = Uuid::new_v4();
-            let offsets = NewEvent::parse_recurrence(recurrence);
-
-            (
-                Some(cache_key),
-                Some(NewEvent::from_offsets(&offsets, a.id, id, json.j_0, json.j_end, cache_key)),
-            )
-        } else {
-            (None, None)
-        };
 
         let changes = CourseChangeset {
             name: json.name,
@@ -388,10 +431,6 @@ async fn courses_update(db: DbConn, a: Account, id: Uuid, json: Json<CourseMod>)
                 Some(d) => Some(Some(d)),
                 None => None,
             },
-            j_0: Some(json.j_0),
-            j_end: Some(json.j_end),
-            recurrence: Some(&json.recurrence),
-            cache_key,
         };
 
         diesel::update(c_dsl::courses)
@@ -399,13 +438,82 @@ async fn courses_update(db: DbConn, a: Account, id: Uuid, json: Json<CourseMod>)
             .filter(c_dsl::owner.eq(a.id).and(c_dsl::id.eq(id)))
             .execute(db)?;
 
-        if let Some(events) = events {
-            diesel::insert_into(e_dsl::events)
-                .values(events)
-                .execute(db)?;
+        Result::<_, diesel::result::Error>::Ok(())
+    }?);
+
+    ApiResult::success()
+}
+
+#[derive(serde::Deserialize)]
+struct UpdateRecurrence {
+    recurrence: String,
+    j_0: NaiveDate,
+    j_end: NaiveDate,
+}
+
+#[post("/api/courses/<id>/recurrence", data = "<json>")]
+async fn courses_update_recurrence(
+    db: DbConn,
+    a: Account,
+    id: Uuid,
+    json: Json<UpdateRecurrence>,
+) -> ApiResult {
+    let UpdateRecurrence {
+        recurrence,
+        j_0,
+        j_end,
+    } = json.into_inner();
+
+    let offsets = NewEvent::parse_recurrence(&recurrence);
+
+    with_db!(db => || {
+        use schema::courses::dsl as c_dsl;
+        use schema::events::dsl as e_dsl;
+
+        let cache_key = Uuid::new_v4();
+
+        let course = c_dsl::courses
+            .filter(c_dsl::owner.eq(a.id).and(c_dsl::id.eq(id)))
+            .first::<Course>(db)?;
+
+        let events = NewEvent::from_offsets(&offsets, a.id, id, j_0, j_end, cache_key);
+
+        diesel::update(c_dsl::courses)
+            .filter(c_dsl::owner.eq(a.id).and(c_dsl::id.eq(id)))
+            .set((
+                c_dsl::recurrence.eq(recurrence),
+                c_dsl::cache_key.eq(cache_key),
+                c_dsl::j_0.eq(j_0),
+                c_dsl::j_end.eq(j_end),
+            ))
+            .execute(db)?;
+
+        diesel::insert_into(e_dsl::events)
+            .values(events)
+            .execute(db)
+    }?);
+
+    ApiResult::success()
+}
+
+#[put("/api/courses/<id>/archived", data = "<archived>")]
+async fn courses_archive(db: DbConn, a: Account, id: Uuid, archived: Json<bool>) -> ApiResult {
+    let archived = archived.into_inner();
+
+    with_db!(db => {
+        use schema::courses::dsl as c_dsl;
+
+        use schema::courses as courses_table;
+        #[derive(AsChangeset)]
+        #[table_name = "courses_table"]
+        struct CourseChangeset {
+            archived: bool,
         }
 
-        Result::<_, diesel::result::Error>::Ok(())
+        diesel::update(c_dsl::courses)
+            .set(CourseChangeset { archived })
+            .filter(c_dsl::owner.eq(a.id).and(c_dsl::id.eq(id)))
+            .execute(db)
     }?);
 
     ApiResult::success()
@@ -464,8 +572,9 @@ macro_rules! event_and_course_select {
                 e_dsl::date,
                 e_dsl::cache_key,
             ))
-            .filter(e_dsl::course.eq(c_dsl::id))
+            .filter(e_dsl::course.eq(c_dsl::id).and(c_dsl::archived.eq(false)))
             .order_by(e_dsl::date.asc())
+            .then_order_by(e_dsl::j.asc())
     }};
 }
 
@@ -487,7 +596,7 @@ async fn timeline(db: DbConn, a: Account, after: Option<String>) -> ApiResult<Ve
     ApiResult::Ok(events)
 }
 
-#[put("/api/courses/<course>/events/<j>", data = "<marking>")]
+#[put("/api/courses/<course>/events/<j>/marking", data = "<marking>")]
 async fn mark(db: DbConn, a: Account, course: Uuid, j: u32, marking: String) -> ApiResult {
     let marking = Some(marking).filter(|m| !m.is_empty());
 

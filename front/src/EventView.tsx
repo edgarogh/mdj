@@ -1,6 +1,7 @@
-import {makeStyles} from "@material-ui/core";
+import {ButtonBaseActions, makeStyles} from "@material-ui/core";
 import Accordion from "@material-ui/core/Accordion";
 import Select from "@material-ui/core/Select";
+import Chip from "@material-ui/core/Chip";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import FormControl from "@material-ui/core/FormControl";
@@ -8,9 +9,15 @@ import AccordionSummary from "@material-ui/core/AccordionSummary";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import Typography from "@material-ui/core/Typography";
 import Skeleton from "@material-ui/lab/Skeleton";
-import {useCallback, useState} from "react";
-import {Event, useApi} from "./Api";
+import React, {useCallback, useMemo, useState} from "react";
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import {observer} from "mobx-react-lite";
+import {Event} from "./store";
+import {markingDecoration} from "./utils";
+
+let id = 0;
+
+const SCROLL_ARGS: ScrollIntoViewOptions = { behavior: 'auto', block: 'center', inline: 'center' };
 
 const useStyles = makeStyles((theme) => ({
     skeleton: {
@@ -18,8 +25,11 @@ const useStyles = makeStyles((theme) => ({
     },
     heading: {
         fontSize: theme.typography.pxToRem(15),
-            flexBasis: '33.33%',
-            flexShrink: 0,
+        flexShrink: 0,
+    },
+    chip: {
+        marginLeft: '12px',
+        pointerEvents: 'none',
     },
     summary: {
         display: 'flex',
@@ -41,25 +51,47 @@ export interface EventViewProps {
     event: Event | undefined;
 }
 
-export default function EventView({ hideDate, event }: EventViewProps) {
+export default observer(function EventView({ hideDate, event }: EventViewProps) {
     const classes = useStyles();
     const [expanded, setExpanded] = useState(false);
 
-    const started = event?.marking === 'started';
-    const furtherLearningRequired = event?.marking === 'further_learning_required';
-    const done = event?.marking === 'done';
+    const name = event?.course?.name;
+    const marking = event?.marking;
+
+    const id = useMemo(() => event?.course && (
+        `tl-event-${event.course.id}-${event.date.value}`
+    ), [event?.course?.id, event?.date]);
+
+    const idInHash = useMemo(() => (
+        window.location.hash.substr(1) === id
+    ), [id])
+
+    const ref = (ref: HTMLDivElement | null) => idInHash && ref?.scrollIntoView(SCROLL_ARGS);
+    const rippleRef = (ref: ButtonBaseActions | null) => idInHash && ref?.focusVisible();
+
+    const [markingStyle, markingSuffix] = markingDecoration(marking);
 
     return (
-        <Accordion className={!event ? classes.skeleton : ''} expanded={!!event && expanded} onChange={(_, e) => setExpanded(e)}>
-            <AccordionSummary className={classes.summary} expandIcon={event && <ExpandMoreIcon />}>
-                {event ? <div className={classes.summary}>
-                    <Typography style={{ textDecoration: done ? 'line-through' : 'inherit' }} className={classes.heading}>
-                        {event.course.name}
-                        {started && '*'}
-                        {furtherLearningRequired && '?'}
+        <Accordion
+            id={id || undefined}
+            className={!event ? classes.skeleton : ''}
+            expanded={!!event && expanded}
+            onChange={(_, e) => setExpanded(e)}
+            ref={ref}
+        >
+            <AccordionSummary className={classes.summary} expandIcon={event && <ExpandMoreIcon />} action={rippleRef}>
+                {event && name ? <div className={classes.summary}>
+                    <Typography
+                        component="h4"
+                        style={markingStyle}
+                        className={classes.heading}
+                    >
+                        {name}
+                        {markingSuffix}
+                        <Chip className={classes.chip} variant="outlined" size="small" label={`J+${event.j}`}/>
                     </Typography>
                     <Typography className={classes.secondaryHeading}>
-                        {!hideDate && formatDate(event.date)}
+                        {!hideDate && event.date.toUtc().toDateString()}
                     </Typography>
                 </div> : (
                     <Skeleton width="33%"/>
@@ -72,25 +104,24 @@ export default function EventView({ hideDate, event }: EventViewProps) {
             )}
         </Accordion>
     );
-}
+});
 
-function EventViewEditMark({ event }: { event: Event }) {
+const EventViewEditMark = observer(function EventViewEditMark({ event }: { event: Event }) {
     const classes = useStyles();
-    const { markEvent } = useApi();
 
     const [mark, setMark] = useState(event.marking || '');
 
     const onMarkChange = useCallback((e) => {
         setMark(e.target.value);
-        markEvent(event.course.id, event.j, e.target.value);
+        event.mark(e.target.value);
     }, [event?.course, event?.j, setMark]);
 
     return (
         <FormControl className={classes.markSelect} variant="outlined">
-            <InputLabel id={`mark-label-${event.course.id}-${event.j}`}>Marquage</InputLabel>
+            <InputLabel id={`mark-label-${event.course?.id || id++}-${event.j}`}>Marquage</InputLabel>
             <Select
-                id={`mark-${event.course.id}-${event.j}`}
-                labelId={`mark-label-${event.course.id}-${event.j}`}
+                id={`mark-${event.course?.id || id++}-${event.j}`}
+                labelId={`mark-label-${event.course?.id || id++}-${event.j}`}
                 value={mark}
                 onChange={onMarkChange}
             >
@@ -101,8 +132,4 @@ function EventViewEditMark({ event }: { event: Event }) {
             </Select>
         </FormControl>
     );
-}
-
-function formatDate(date: string) {
-    return (new Date(Date.parse(date))).toDateString();
-}
+});

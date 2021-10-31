@@ -1,6 +1,6 @@
 # Méthode des J
 
-> A J0 (le jour-même où le cours a été fait par le professeur), il faut apprendre le cours. Puis le réviser le lendemain (J1), à J3, J7, J14, J28… Quand les cours s’accumulent, il faut se focaliser sur les cours que l’on connaît le moins. Pour cette méthode, il faut être particulièrement rigoureux. On vous conseille vivement de vous faire un planning ou de prendre un calendrier et de noter les cours dans celui-ci dès la fin de la matinée pour éviter d’oublier de les noter.
+> À J0 (le jour-même où le cours a été fait par le professeur), il faut apprendre le cours. Puis le réviser le lendemain (J1), à J3, J7, J14, J28… Quand les cours s’accumulent, il faut se focaliser sur les cours que l’on connaît le moins. Pour cette méthode, il faut être particulièrement rigoureux. On vous conseille vivement de vous faire un planning ou de prendre un calendrier et de noter les cours dans celui-ci dès la fin de la matinée pour éviter d’oublier de les noter.
 > 
 > **🏴󠁧󠁢󠁥󠁮󠁧󠁿 Translation:** On D0 (the day you are given the lesson), you have to learn the lesson. Then revise it the next day (D1), on D3, D7, D14, D28... [...]
 >
