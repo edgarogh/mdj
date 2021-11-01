@@ -13,6 +13,7 @@ import Settings from "./Settings";
 import {useRootStore} from "./StoreProvider";
 import Tabs from "./Tabs";
 import Timeline from "./Timeline";
+import Toast from "./Toast";
 
 const useStyles = makeStyles({
     container: {
@@ -33,13 +34,13 @@ const useStyles = makeStyles({
  * status code "401 Unauthorized", which would indicate that the current session is invalid.
  */
 function SetupUnauthorizedHandler() {
-    const { api } = useRootStore();
+    const { api, toasts } = useRootStore();
     const history = useHistory();
 
     useEffect(() => {
         api.onDisconnectedHandler = () => {
            if (history.location.pathname !== routes.LOGIN) {
-               // TODO "Your session has expired" snackbar
+               toasts.showToast('Votre session a expiré, veuillez vous reconnecter', 'info', undefined, 5000);
                history.push(routes.LOGIN);
            }
         };
@@ -79,6 +80,7 @@ export default function App() {
                                 <Timeline/>
                             </Route>
                         </Switch>
+                        <Toast bottom={56 + 16}/>
                     </main>
                     <Tabs/>
                 </Container>

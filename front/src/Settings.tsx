@@ -64,22 +64,10 @@ export default observer(function Settings() {
         accountId ? (`${location.protocol}//${location.host}` + "/ical/" + accountId) : undefined
     ), [accountId]);
 
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [snackbarTimeout, setSnackbarTimeout] = useState<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-    useEffect(() => () => {
-        if (snackbarTimeout) clearTimeout(snackbarTimeout);
-    }, [snackbarTimeout]);
-
     const doCopy = useCallback(() => {
         copy(icalUrl!!);
-        setSnackbarOpen(true);
-        if (snackbarTimeout) clearTimeout(snackbarTimeout);
-        setSnackbarTimeout(setTimeout(() => {
-            setSnackbarTimeout(undefined);
-            setSnackbarOpen(false);
-        }, 2000));
-    }, [icalUrl, snackbarTimeout]);
+        store.toasts.showToast("URL copié !", undefined, 'copied');
+    }, [icalUrl]);
 
     return (
         <div style={{ paddingTop: '8px' }}>
@@ -96,10 +84,6 @@ export default observer(function Settings() {
                     <IconButton disabled={!icalUrl} onClick={doCopy}>
                         <FileCopyIcon/>
                     </IconButton>
-                    <Snackbar
-                        open={snackbarOpen}
-                        message={"URL copié"}
-                    />
                 </div>
             </Paper>
             <Paper className={classes.paper}>

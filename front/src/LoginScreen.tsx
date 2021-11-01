@@ -53,13 +53,25 @@ export default function LoginScreen() {
             setLoggingIn(true);
             rootStore.api.login(formData).then(result => {
                 setLoggingIn(false);
+                const showToast = (message) => rootStore.toasts.showToast(message, 'error', 'login');
                 switch (result) {
                     case true: {
                         rootStore.fetchAll();
                         history.push(routes.TIMELINE);
                         break;
                     }
-                    default: return console.error(result); // TODO use snackbar
+                    case 'database': {
+                        showToast('Erreur interne. Veuillez réessayer plus tard.')
+                        break;
+                    }
+                    case 'invalid_credentials': {
+                        showToast('Identifiants invalides')
+                        break;
+                    }
+                    case 'invalid_response': {
+                        showToast('Le serveur à renvoyé une réponse invalide. Essayez de recharger la page ?')
+                        break;
+                    }
                 }
             });
         }

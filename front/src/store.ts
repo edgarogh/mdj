@@ -1,3 +1,4 @@
+import {Color} from "@material-ui/lab";
 import {makeAutoObservable, runInAction} from "mobx";
 import Day from "./Day";
 
@@ -119,6 +120,8 @@ class Api {
 
 export class RootStore {
     api: Api;
+
+    toasts: ToastStore;
     courseStore: CourseStore;
     eventStore: EventStore;
 
@@ -133,8 +136,9 @@ export class RootStore {
     };
 
     constructor(api: Api = new Api('/')) {
-        makeAutoObservable(this, { api: false, courseStore: false, eventStore: false });
+        makeAutoObservable(this, { api: false, toasts: false, courseStore: false, eventStore: false });
         this.api = api;
+        this.toasts = new ToastStore();
         this.courseStore = new CourseStore(this);
         this.eventStore = new EventStore(this);
 
@@ -153,6 +157,53 @@ export class RootStore {
                 this.accountInfo = ai as any;
             });
         });
+    }
+}
+
+class Toast {
+    readonly store: ToastStore;
+    readonly channel: string | undefined;
+    readonly text: string;
+    readonly severity: Color | undefined = undefined;
+    readonly delay: number;
+    expired = false;
+
+    constructor(store: ToastStore, text: string, delay: number, severity: Color | undefined, channel: string | undefined) {
+        makeAutoObservable(this, { store: false, channel: false, text: false, delay: false });
+        this.store = store;
+        this.channel = channel;
+        this.text = text;
+        this.delay = delay;
+        this.severity = severity;
+    }
+
+    startCountdown() {
+        setTimeout(() => runInAction(() => this.expired = true), this.delay);
+        setTimeout(() => runInAction(() => this.store.toasts.shift()), this.delay + 200);
+    }
+}
+
+class ToastStore {
+    private static TOAST_DELAY = 2000;
+
+    toasts: Toast[] = [];
+
+    constructor() {
+        makeAutoObservable(this);
+    }
+
+    showToast(message: string, severity?: Color, channel?: string, delay?: number) {
+        if (channel && this.toasts.find((toast) => toast.channel == channel)) return;
+        this.toasts.push(new Toast(this, message, delay || ToastStore.TOAST_DELAY, severity, channel));
+    }
+
+    get current(): (Toast & { expired: false }) | undefined {
+        const toast = this.toasts.length > 0 ? this.toasts[0] : undefined;
+        if (toast && !toast.expired) {
+            return toast as any;
+        } else {
+            return undefined;
+        }
     }
 }
 
