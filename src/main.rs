@@ -25,7 +25,6 @@ use rocket::http::{ContentType, Cookie, CookieJar, SameSite, Status};
 use rocket::outcome::try_outcome;
 use rocket::outcome::IntoOutcome;
 use rocket::request::{FromRequest, Outcome};
-use rocket::response::content::Html;
 use rocket::response::Redirect;
 use rocket::serde::json::Json;
 use rocket::{Request, Rocket};
@@ -48,7 +47,6 @@ async fn launch() -> _ {
             routes![
                 index,
                 assets,
-                login_no_spa,
                 login,
                 logout,
                 account_info,
@@ -100,11 +98,8 @@ macro_rules! with_db {
 }
 
 #[get("/<_anything..>", rank = 10)]
-async fn index(a: Option<Account>, _anything: PathBuf) -> Result<Asset, Redirect> {
-    let index = Asset::open(AssetName::index_html()).await.unwrap();
-
-    a.map(|_| index)
-        .ok_or_else(|| Redirect::to(uri!(login_no_spa)))
+async fn index(_anything: PathBuf) -> Asset {
+    Asset::open(AssetName::index_html()).await.unwrap()
 }
 
 #[get("/<asset>")]
@@ -116,19 +111,6 @@ pub async fn assets(asset: AssetName) -> Option<Asset> {
 struct LoginForm {
     email: String,
     password: String,
-}
-
-#[get("/login")]
-fn login_no_spa() -> Html<&'static str> {
-    Html(
-        r#"
-        <form method="post">
-            <input type="text" name="email" placeholder="john@doe.net">
-            <input type="password" name="password" placeholder="azerty1234">
-            <input type="submit">
-        </form>
-    "#,
-    )
 }
 
 const COOKIE_SESSION_NAME: &str = "mdj:session";
@@ -260,7 +242,7 @@ async fn login(
 #[get("/logout")]
 fn logout(cookies: &CookieJar) -> Redirect {
     cookies.remove_private(Cookie::named(COOKIE_SESSION_NAME));
-    Redirect::to(uri!(login_no_spa))
+    Redirect::to("/login")
 }
 
 #[derive(serde::Serialize)]
