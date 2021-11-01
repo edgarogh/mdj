@@ -8,7 +8,7 @@
     "build": "parcel build src/index.html --dist-dir dist-prod --public-url https://mdj.edgar.bzh/"
   },
   "author": "",
-  "license": "GPL-3.0",
+  "license": "AGPL-3.0",
   "devDependencies": {
     "@material-ui/core": "^4.12.3",
     "@material-ui/icons": "^4.11.2",
