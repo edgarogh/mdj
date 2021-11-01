@@ -1,17 +1,17 @@
 import {ButtonBaseActions, makeStyles} from "@material-ui/core";
 import Accordion from "@material-ui/core/Accordion";
-import Select from "@material-ui/core/Select";
+import AccordionDetails from "@material-ui/core/AccordionDetails";
+import AccordionSummary from "@material-ui/core/AccordionSummary";
 import Chip from "@material-ui/core/Chip";
+import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
-import FormControl from "@material-ui/core/FormControl";
-import AccordionSummary from "@material-ui/core/AccordionSummary";
-import AccordionDetails from "@material-ui/core/AccordionDetails";
+import Select from "@material-ui/core/Select";
 import Typography from "@material-ui/core/Typography";
+import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Skeleton from "@material-ui/lab/Skeleton";
-import React, {useCallback, useMemo, useState} from "react";
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import {observer} from "mobx-react-lite";
+import React, {useCallback, useMemo, useState} from "react";
 import {Event} from "./store";
 import {markingDecoration} from "./utils";
 
@@ -49,11 +49,12 @@ const useStyles = makeStyles((theme) => ({
 export interface EventViewProps {
     hideDate?: boolean;
     event: Event | undefined;
+    expanded?: string;
+    setExpanded?: (id: string | undefined) => void;
 }
 
-export default observer(function EventView({ hideDate, event }: EventViewProps) {
+export default observer(function EventView({ hideDate, event, expanded, setExpanded }: EventViewProps) {
     const classes = useStyles();
-    const [expanded, setExpanded] = useState(false);
 
     const name = event?.course?.name;
     const marking = event?.marking;
@@ -66,6 +67,10 @@ export default observer(function EventView({ hideDate, event }: EventViewProps) 
         window.location.hash.substr(1) === id
     ), [id])
 
+    const onExpandChanged = useCallback((_, expanded: boolean) => {
+        setExpanded?.(expanded ? id || undefined : undefined);
+    }, [id, setExpanded]);
+
     const ref = (ref: HTMLDivElement | null) => idInHash && ref?.scrollIntoView(SCROLL_ARGS);
     const rippleRef = (ref: ButtonBaseActions | null) => idInHash && ref?.focusVisible();
 
@@ -75,8 +80,8 @@ export default observer(function EventView({ hideDate, event }: EventViewProps) 
         <Accordion
             id={id || undefined}
             className={!event ? classes.skeleton : ''}
-            expanded={!!event && expanded}
-            onChange={(_, e) => setExpanded(e)}
+            expanded={!!event && (expanded == id)}
+            onChange={onExpandChanged}
             ref={ref}
         >
             <AccordionSummary className={classes.summary} expandIcon={event && <ExpandMoreIcon />} action={rippleRef}>

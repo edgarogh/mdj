@@ -2,7 +2,7 @@ import {makeStyles} from "@material-ui/core";
 import Typography from "@material-ui/core/Typography";
 import Title from "./Title";
 import Skeleton from "@material-ui/lab/Skeleton";
-import React from "react";
+import React, {useState} from "react";
 import EventView from "./EventView";
 import Button from "@material-ui/core/Button";
 import CalendarIcon from "@material-ui/icons/DateRange"
@@ -39,7 +39,14 @@ const CATEGORY_SKELETON: Record<CategoryName, [number, number]> = {
     rest: [0, 0],
 };
 
-const Category = observer(function Category({ name, events }: { name: CategoryName, events: Event[] | undefined }) {
+interface CategoryProps {
+    name: CategoryName;
+    events: Event[] | undefined;
+    expanded?: string;
+    setExpanded?: (id: string | undefined) => void;
+}
+
+const Category = observer(function Category({ name, events, expanded, setExpanded }: CategoryProps) {
     const classes = useStyles();
 
     const isToday = name === 'today';
@@ -51,7 +58,7 @@ const Category = observer(function Category({ name, events }: { name: CategoryNa
             .map((_, idx) => <EventView key={idx} event={undefined}/>);
     } else {
         eventComponents = events.map((e) => (
-            <EventView key={e.key} event={e} hideDate={isToday}/>
+            <EventView key={e.key} event={e} hideDate={isToday} expanded={expanded} setExpanded={setExpanded}/>
         ));
     }
 
@@ -74,6 +81,8 @@ export default observer(function Timeline() {
     const email = store.accountInfo?.email;
     const timeline = store.eventStore.timeline;
 
+    const [expanded, setExpanded] = useState<string | undefined>(undefined);
+
     const categories =
         store.eventStore.isLoading ? (
             <>
@@ -82,9 +91,9 @@ export default observer(function Timeline() {
             </>
         ) : (
             <>
-                <Category name="today" events={store.eventStore.timelineToday}/>
-                <Category name="week" events={store.eventStore.timeline7Days}/>
-                <Category name="rest" events={store.eventStore.timelineRest}/>
+                <Category name="today" events={store.eventStore.timelineToday} expanded={expanded} setExpanded={setExpanded}/>
+                <Category name="week" events={store.eventStore.timeline7Days} expanded={expanded} setExpanded={setExpanded}/>
+                <Category name="rest" events={store.eventStore.timelineRest} expanded={expanded} setExpanded={setExpanded}/>
             </>
         );
 
