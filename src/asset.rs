@@ -11,7 +11,7 @@ impl AssetName {
 }
 
 impl AssetName {
-    const EXTENSIONS: [&'static str; 4] = [".css", ".js", ".map", ".webmanifest"];
+    const EXTENSIONS: &'static [&'static str] = &[".css", ".js", ".map", ".svg", ".webmanifest"];
 }
 
 impl<'a> FromParam<'a> for AssetName {

@@ -10,8 +10,12 @@ import React, {useCallback, useMemo, useState} from "react";
 import {Link} from "react-router-dom";
 import CourseList from "./course/CourseList";
 import EmptyState from "./EmptyState";
+import preload from "./preload";
 import {Course} from "./store";
 import {useRootStore} from "./StoreProvider";
+
+const EMPTY_STATE = preload(new URL('../assets/empty_state_courses.min.svg', import.meta.url));
+const EMPTY_STATE_SEARCH = preload(new URL('../assets/empty_state_courses_search.min.svg', import.meta.url));
 
 function searchCourses(courses: Course[], searchInput: string) {
     if (process.env.NODE_ENV !== 'production') console.profile('course search');
@@ -95,17 +99,17 @@ export default observer(function CourseListScreen() {
                     <AddIcon/>
                 </IconButton>
             </Paper>
-            {filteredCourses.length > 0 ? (
+            {courseStore.isLoading || filteredCourses.length > 0 ? (
                 <CourseList courses={courseStore.isLoading ? undefined : filteredCourses}/>
             ) : courses.length > 0 ? (
                 <EmptyState
-                    illustration={new URL('../assets/empty_state_courses_search.min.svg', import.meta.url)}
+                    illustration={EMPTY_STATE_SEARCH}
                     title={"Aucun cours"}
                     subtitle={"Essayez d'autres termes de recherche"}
                 />
             ) : (
                 <EmptyState
-                    illustration={new URL('../assets/empty_state_courses.min.svg', import.meta.url)}
+                    illustration={EMPTY_STATE}
                     title={"Aucun cours"}
                     subtitle={"Allez-vous abandonner dès maintenant ?"}
                     ctaLabel={"Créer un cours"}

@@ -4,7 +4,7 @@ import Typography from "@material-ui/core/Typography";
 import React from "react";
 
 export interface EmptyStateProps {
-    illustration: URL;
+    illustration: string | URL;
     title: string;
     subtitle: string;
     ctaLabel?: string;
@@ -32,7 +32,7 @@ export default function EmptyState(props: EmptyStateProps) {
 
     return (
         <div className={classes.root}>
-            <img aria-hidden alt="" src={props.illustration as any}/>
+            <img aria-hidden alt="" src={props.illustration as string}/>
             <Typography variant="h5" component="h3">{props.title}</Typography>
             <Typography variant="subtitle1" component="p">{props.subtitle}</Typography>
             {props.ctaLabel && (

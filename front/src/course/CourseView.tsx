@@ -26,6 +26,7 @@ const useStyles = makeStyles((theme) => ({
     card: {
         width: 'calc(100% - 16px) !important',
         margin: '8px',
+        marginTop: 0,
     },
     recurrenceSummary: {
         display: 'flex',

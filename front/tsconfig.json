@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "module": "ES2020",
+    "moduleResolution": "Node",
     "target": "ES5",
     "jsx": "react",
     "strictNullChecks": true,
