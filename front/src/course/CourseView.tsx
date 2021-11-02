@@ -27,6 +27,10 @@ const useStyles = makeStyles((theme) => ({
         width: 'calc(100% - 16px) !important',
         margin: '8px',
         marginTop: 0,
+        overflow: 'initial !important',
+        '&:last-child': {
+            marginBottom: 0,
+        }
     },
     recurrenceSummary: {
         display: 'flex',
