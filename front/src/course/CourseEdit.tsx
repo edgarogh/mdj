@@ -12,6 +12,10 @@ import {useRootStore} from "../StoreProvider";
 import {observer} from "mobx-react-lite";
 
 const useStyles = makeStyles({
+    card: {
+        margin: '0 8px 8px 8px',
+        width: 'calc(100% - 16px) !important',
+    },
     backButton: {
         margin: '8px',
     },
@@ -92,16 +96,18 @@ export default observer(function CourseEdit() {
     }, [course?.id, name, description, j0, jEnd, recurrence, history]);
 
     return <>
-        <Button
-            className={classes.backButton}
-            size="small"
-            startIcon={<ChevronLeftIcon/>}
-            to="/courses"
-            component={Link}
-        >
-            Annuler
-        </Button>
-        <Card style={{ margin: '0 8px 8px 8px' }}>
+        <div>
+            <Button
+                className={classes.backButton}
+                size="small"
+                startIcon={<ChevronLeftIcon/>}
+                to="/courses"
+                component={Link}
+            >
+                Annuler
+            </Button>
+        </div>
+        <Card className={classes.card}>
             <CardContent>
                 <TextField
                     label={"Nom"}

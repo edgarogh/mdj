@@ -23,6 +23,7 @@ const useStyles = makeStyles((theme) => ({
         background: 'rgb(248, 248, 248)',
     },
     card: {
+        width: 'calc(100% - 16px) !important',
         margin: '8px',
     },
     recurrenceSummary: {

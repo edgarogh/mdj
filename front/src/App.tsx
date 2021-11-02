@@ -24,8 +24,15 @@ const useStyles = makeStyles({
     },
     main: {
         flex: '1',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
         overflowY: 'auto',
         paddingBottom: '8px',
+
+        '& > *': {
+            width: '100%',
+        }
     },
 });
 
