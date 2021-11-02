@@ -1,4 +1,5 @@
-import {makeStyles, TextField} from "@material-ui/core";
+import {makeStyles} from "@material-ui/core/styles";
+import TextField from "@material-ui/core/TextField";
 import Link from "@material-ui/core/Link";
 import React, {FormEvent, useCallback, useRef, useState} from "react";
 import {useHistory} from "react-router-dom";

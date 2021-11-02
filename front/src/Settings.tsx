@@ -1,19 +1,18 @@
-import {makeStyles} from "@material-ui/core";
 import Button from "@material-ui/core/Button";
 import IconButton from "@material-ui/core/IconButton";
 import Paper from "@material-ui/core/Paper";
-import Snackbar from "@material-ui/core/Snackbar";
+import {makeStyles} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import ExitToApp from "@material-ui/icons/ExitToApp";
 import FileCopyIcon from "@material-ui/icons/FileCopy";
 import Skeleton from "@material-ui/lab/Skeleton";
 import copy from "copy-to-clipboard";
-import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {observer} from "mobx-react-lite";
-import {useRootStore} from "./StoreProvider";
+import React, {useCallback, useMemo} from "react";
 import {Link} from "react-router-dom";
-import * as routes from './routes';
 import ArchiveDialogs from "./ArchiveDialogs";
+import * as routes from "./routes";
+import {useRootStore} from "./StoreProvider";
 
 const useStyles = makeStyles({
     paper: {

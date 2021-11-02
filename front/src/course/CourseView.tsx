@@ -1,5 +1,6 @@
 import "../transitions/chip-fade.scss";
-import {CardActions, makeStyles} from "@material-ui/core";
+import {makeStyles} from "@material-ui/core/styles";
+import CardActions from "@material-ui/core/CardActions";
 import Chip from "@material-ui/core/Chip";
 import CardHeader from "@material-ui/core/CardHeader";
 import Card from "@material-ui/core/Card";
