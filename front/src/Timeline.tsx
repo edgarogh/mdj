@@ -1,15 +1,14 @@
-import {makeStyles} from "@material-ui/core";
-import Typography from "@material-ui/core/Typography";
-import Title from "./Title";
-import Skeleton from "@material-ui/lab/Skeleton";
-import React, {useState} from "react";
-import EventView from "./EventView";
 import Button from "@material-ui/core/Button";
-import CalendarIcon from "@material-ui/icons/DateRange"
-import {Link} from "react-router-dom";
-import {Event} from "./store";
-import {useRootStore} from "./StoreProvider";
+import {makeStyles} from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
+import CalendarIcon from "@material-ui/icons/DateRange";
+import Skeleton from "@material-ui/lab/Skeleton";
 import {observer} from "mobx-react-lite";
+import React, {useState} from "react";
+import {Link} from "react-router-dom";
+import {useRootStore} from "./StoreProvider";
+import Category from "./timeline/Category";
+import Title from "./Title";
 
 const useStyles = makeStyles({
     padded: {
@@ -23,55 +22,6 @@ const useStyles = makeStyles({
         alignItems: 'center',
         justifyContent: 'center',
     },
-});
-
-const CATEGORY_NAMES = {
-    'today': "Aujourd'hui",
-    'week': "7 prochains jours",
-    'rest': "Plus tard",
-} as const;
-
-type CategoryName = keyof typeof CATEGORY_NAMES;
-
-const CATEGORY_SKELETON: Record<CategoryName, [number, number]> = {
-    today: [2, 50],
-    week: [6, 70],
-    rest: [0, 0],
-};
-
-interface CategoryProps {
-    name: CategoryName;
-    events: Event[] | undefined;
-    expanded?: string;
-    setExpanded?: (id: string | undefined) => void;
-}
-
-const Category = observer(function Category({ name, events, expanded, setExpanded }: CategoryProps) {
-    const classes = useStyles();
-
-    const isToday = name === 'today';
-
-    let eventComponents;
-    if (!events) {
-        eventComponents = Array(CATEGORY_SKELETON[name][0])
-            .fill(undefined)
-            .map((_, idx) => <EventView key={idx} event={undefined}/>);
-    } else {
-        eventComponents = events.map((e) => (
-            <EventView key={e.key} event={e} hideDate={isToday} expanded={expanded} setExpanded={setExpanded}/>
-        ));
-    }
-
-    if (eventComponents.length === 0) return <></>;
-
-    return <>
-        <div className={classes.padded}>
-            <Typography variant="h5" component="h2">
-                {events ? CATEGORY_NAMES[name] : <Skeleton width={CATEGORY_SKELETON[name][1] + '%'} />}
-            </Typography>
-        </div>
-        {eventComponents}
-    </>;
 });
 
 export default observer(function Timeline() {

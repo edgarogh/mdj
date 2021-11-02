@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from "react";
 import Calendar from "react-calendar";
-import {makeStyles} from "@material-ui/core";
-import EventView from "./EventView";
+import {makeStyles} from "@material-ui/core/styles";
+import EventView from "./timeline/EventView";
 import Day from "./Day";
 import {useRootStore} from "./StoreProvider";
 import {observer} from "mobx-react-lite";

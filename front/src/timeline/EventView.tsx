@@ -1,23 +1,27 @@
-import {ButtonBaseActions, makeStyles} from "@material-ui/core";
 import Accordion from "@material-ui/core/Accordion";
 import AccordionDetails from "@material-ui/core/AccordionDetails";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
+import ButtonBaseActions from "@material-ui/core/ButtonBaseActions";
 import Chip from "@material-ui/core/Chip";
 import FormControl from "@material-ui/core/FormControl";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
+import {makeStyles} from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import Skeleton from "@material-ui/lab/Skeleton";
 import {observer} from "mobx-react-lite";
 import React, {useCallback, useMemo, useState} from "react";
-import {Event} from "./store";
-import {markingDecoration} from "./utils";
+import {Event} from "../store";
+import {markingDecoration} from "../utils";
+import CategoryName from "./CategoryName";
 
 let id = 0;
 
 const SCROLL_ARGS: ScrollIntoViewOptions = { behavior: 'auto', block: 'center', inline: 'center' };
+const DATE_FORMAT_CLOSER: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric' };
+const DATE_FORMAT_FURTHER: Intl.DateTimeFormatOptions = { day:'numeric', month:'numeric', year:'2-digit' };
 
 const useStyles = makeStyles((theme) => ({
     skeleton: {
@@ -47,13 +51,13 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export interface EventViewProps {
-    hideDate?: boolean;
+    category: CategoryName;
     event: Event | undefined;
     expanded?: string;
     setExpanded?: (id: string | undefined) => void;
 }
 
-export default observer(function EventView({ hideDate, event, expanded, setExpanded }: EventViewProps) {
+export default observer(function EventView({ category, event, expanded, setExpanded }: EventViewProps) {
     const classes = useStyles();
 
     const name = event?.course?.name;
@@ -76,6 +80,23 @@ export default observer(function EventView({ hideDate, event, expanded, setExpan
 
     const [markingStyle, markingSuffix] = markingDecoration(marking);
 
+    const formattedDate = useMemo(() => {
+        let format: Intl.DateTimeFormatOptions;
+        switch (category) {
+            case 'today': return false;
+            case 'week': {
+                format = DATE_FORMAT_CLOSER;
+                break;
+            }
+            case 'rest': {
+                format = DATE_FORMAT_FURTHER;
+                break;
+            }
+        }
+
+        return event ? event.date.toUtc().toLocaleDateString(undefined, format) : undefined;
+    }, [category, event?.date.value]);
+
     return (
         <Accordion
             id={id || undefined}
@@ -96,7 +117,7 @@ export default observer(function EventView({ hideDate, event, expanded, setExpan
                         <Chip className={classes.chip} variant="outlined" size="small" label={`J+${event.j}`}/>
                     </Typography>
                     <Typography className={classes.secondaryHeading}>
-                        {!hideDate && event.date.toUtc().toDateString()}
+                        {formattedDate}
                     </Typography>
                 </div> : (
                     <Skeleton width="33%"/>
