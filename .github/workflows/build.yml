@@ -34,10 +34,11 @@ jobs:
     needs: build-frontend
     steps:
     - uses: actions/checkout@v2
+    - run: mkdir -p front/dist-prod/
     - uses: actions/download-artifact@v2
       with:
         name: frontend
-        path: front/
+        path: front/dist-prod/
     - uses: actions-rs/toolchain@v1
     - uses: Swatinem/rust-cache@v1
     - name: Build
