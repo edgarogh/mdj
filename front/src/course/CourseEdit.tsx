@@ -66,7 +66,7 @@ export default observer(function CourseEdit() {
     const [name, setName] = useState<string>(course?.name || '');
     const [description, setDescription] = useState<string>(course?.description || '');
     const [j0, setJ0] = useState<string>(course?.j_0?.value || (new Date()).toISOString().substr(0,10));
-    const [jEnd, setJEnd] = useState<string>(course?.j_end?.value || '2021-12-18'); // TODO default
+    const [jEnd, setJEnd] = useState<string>(course?.j_end?.value || '2022-07-01'); // TODO default
     const [recurrence, setRecurrence] = useState<string>(course?.recurrence || defaultRecurrences);
 
     const nameValid = useMemo(() => name.length >= 1, [name]);
