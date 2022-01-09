@@ -39,5 +39,5 @@
   "alias": {
     "@mui/styled-engine": "@mui/styled-engine-sc"
   },
-  "browserlist": "defaults"
+  "browserslist": "defaults"
 }
