@@ -1,46 +1,45 @@
-import {makeStyles} from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
-import Link from "@material-ui/core/Link";
+import TextField from "@mui/material/TextField";
+import Link from "@mui/material/Link";
 import React, {FormEvent, useCallback, useRef, useState} from "react";
 import {useHistory} from "react-router-dom";
 import {WithBottomButton} from "./BottomButton";
 import {useRootStore} from "./StoreProvider";
 import {VOID_URL} from "./utils";
 import * as routes from "./routes";
+import {styled} from "@mui/material/styles";
 
-const useStyles = makeStyles({
-    form: {
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
+const Form = styled('form')`
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
-        '& > *': {
-            width: '80%',
-        },
+    & > * {
+        width: 80%;
+    }
+    
+    & > *:nth-child(2) {
+        margin-bottom: 16px;
+    }
+`;
 
-        '& > *:nth-child(2)': {
-            marginBottom: '16px',
-        },
-    },
-    logo: {
-        width: '128px',
-        height: '128px',
-        boxSizing: 'border-box',
-        padding: '20px',
-        border: '3px dashed red',
-        borderRadius: '12px',
-        marginBottom: '32px',
-        cursor: 'default',
-    },
-    passwordLink: {
-        textAlign: 'end',
-    },
-});
+const FakeLogo = styled('div')`
+    width: 128px;
+    height: 128px;
+    box-sizing: border-box;
+    padding: 20px;
+    border: 3px dashed red;
+    border-radius: 12px;
+    margin-bottom: 32px;
+    cursor: default;
+`;
+
+const PasswordLink = styled(Link)`
+    text-align: end;
+`;
 
 export default function LoginScreen() {
-    const classes = useStyles();
     const rootStore = useRootStore();
     const history = useHistory();
 
@@ -88,13 +87,13 @@ export default function LoginScreen() {
     }, []);
 
     return (
-        <form className={classes.form} method="post" onSubmit={doLogin} ref={formRef}>
-            <div aria-disabled className={classes.logo}>N.B.: penser à faire un logo</div>
+        <Form method="post" onSubmit={doLogin} ref={formRef}>
+            <FakeLogo aria-hidden>N.B.: penser à faire un logo</FakeLogo>
             <TextField label={"Adresse e-mail"} disabled={loggingIn} variant="outlined" type="text" name="email" placeholder="john@doe.net" />
             <TextField label={"Mot de passe"} disabled={loggingIn} variant="outlined" type="password" name="password" placeholder="azerty1234" />
-            <Link className={classes.passwordLink} variant="caption" onClick={passwordForgotten} href={VOID_URL}>Mot de passe oublié</Link>
-            <Link className={classes.passwordLink} variant="caption" onClick={noAccount} href={VOID_URL}>Je n'ai pas de compte</Link>
+            <PasswordLink variant="caption" onClick={passwordForgotten} href={VOID_URL}>Mot de passe oublié</PasswordLink>
+            <PasswordLink variant="caption" onClick={noAccount} href={VOID_URL}>Je n'ai pas de compte</PasswordLink>
             <WithBottomButton instance="login" disabled={loggingIn} label={"Se connecter"} onClick={doLogin}/>
-        </form>
+        </Form>
     );
 }

@@ -1,31 +1,29 @@
-import Button from "@material-ui/core/Button";
-import {makeStyles} from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import CalendarIcon from "@material-ui/icons/DateRange";
-import Skeleton from "@material-ui/lab/Skeleton";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import CalendarIcon from "@mui/icons-material/DateRange";
+import Skeleton from "@mui/material/Skeleton";
 import {observer} from "mobx-react-lite";
 import React, {useState} from "react";
 import {Link} from "react-router-dom";
 import {useRootStore} from "./StoreProvider";
 import Category from "./timeline/Category";
 import Title from "./Title";
+import {styled} from "@mui/material/styles";
 
-const useStyles = makeStyles({
-    padded: {
-        padding: '12px 8px 8px 8px',
-    },
-    calendarButtonContainer: {
-        width: '100%',
-        padding: '24px',
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-});
+const PaddedContainer = styled('div')`
+    padding: ${({theme}) => theme.spacing(1.5)}${({theme}) => (' ' + theme.spacing(1)).repeat(3)};
+`;
+
+const CalendarButtonContainer = styled('div')`
+    width: 100%;
+    padding: ${({theme}) => theme.spacing(3)};
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+`;
 
 export default observer(function Timeline() {
-    const classes = useStyles();
     const store = useRootStore();
 
     const email = store.accountInfo?.email;
@@ -48,7 +46,7 @@ export default observer(function Timeline() {
         );
 
     return <>
-        <div className={classes.padded}>
+        <PaddedContainer>
             <Title/>
             <Typography variant="caption" color="textSecondary">
                 {email ? (
@@ -57,11 +55,11 @@ export default observer(function Timeline() {
                     <Skeleton width="60%"/>
                 )}
             </Typography>
-        </div>
+        </PaddedContainer>
 
         {categories}
 
-        {(timeline.length > 0) && <div className={classes.calendarButtonContainer}>
+        {(timeline.length > 0) && <CalendarButtonContainer>
             <Button
                 variant="contained"
                 endIcon={<CalendarIcon/>}
@@ -70,6 +68,6 @@ export default observer(function Timeline() {
             >
                 Voir le calendrier (EXPÉRIMENTAL)
             </Button>
-        </div>}
+        </CalendarButtonContainer>}
     </>;
 });

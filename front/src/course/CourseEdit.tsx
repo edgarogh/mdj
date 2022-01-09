@@ -1,24 +1,23 @@
 import React, {useCallback, useMemo, useState} from "react";
-import {makeStyles} from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Divider from "@material-ui/core/Divider";
-import TextField from "@material-ui/core/TextField";
-import Card from "@material-ui/core/Card";
-import CardContent from "@material-ui/core/CardContent";
-import {Link, useHistory, useRouteMatch} from "react-router-dom";
+import {makeStyles} from "@mui/styles";
+import Divider from "@mui/material/Divider";
+import TextField from "@mui/material/TextField";
+import MuiCard from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import {useHistory, useRouteMatch} from "react-router-dom";
 import {WithBottomButton} from "../BottomButton";
-import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
 import {useRootStore} from "../StoreProvider";
 import {observer} from "mobx-react-lite";
+import {styled} from "@mui/material/styles";
+import BackButton from "../BackButton";
+import * as routes from "../routes";
+
+const Card = styled(MuiCard)`
+    margin: 0 8px 8px 8px;
+    width: calc(100% - ${({theme}) => theme.spacing(2)}) !important;
+`;
 
 const useStyles = makeStyles({
-    card: {
-        margin: '0 8px 8px 8px',
-        width: 'calc(100% - 16px) !important',
-    },
-    backButton: {
-        margin: '8px',
-    },
     field: {
         display: 'flex',
         justifyContent: 'space-between',
@@ -96,18 +95,8 @@ export default observer(function CourseEdit() {
     }, [course?.id, name, description, j0, jEnd, recurrence, history]);
 
     return <>
-        <div>
-            <Button
-                className={classes.backButton}
-                size="small"
-                startIcon={<ChevronLeftIcon/>}
-                to="/courses"
-                component={Link}
-            >
-                Annuler
-            </Button>
-        </div>
-        <Card className={classes.card}>
+        <BackButton label={"Annuler"} to={routes.COURSES}/>
+        <Card>
             <CardContent>
                 <TextField
                     label={"Nom"}

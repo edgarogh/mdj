@@ -1,10 +1,10 @@
-import {makeStyles} from "@material-ui/core/styles";
-import BottomNavigation from "@material-ui/core/BottomNavigation";
-import BottomNavigationAction from "@material-ui/core/BottomNavigationAction";
-import Button from "@material-ui/core/Button";
-import CalendarViewDayRoundedIcon from "@material-ui/icons/CalendarViewDayRounded";
-import LessonsIcon from "@material-ui/icons/LibraryBooksRounded";
-import SettingsIcon from "@material-ui/icons/Settings";
+import {makeStyles} from "@mui/styles";
+import BottomNavigation from "@mui/material/BottomNavigation";
+import BottomNavigationAction from "@mui/material/BottomNavigationAction";
+import Button from "@mui/material/Button";
+import CalendarViewDayRoundedIcon from "@mui/icons-material/CalendarViewDayRounded";
+import LessonsIcon from "@mui/icons-material/LibraryBooksRounded";
+import SettingsIcon from "@mui/icons-material/Settings";
 import React from "react";
 import {Link, useRouteMatch} from "react-router-dom";
 import {useBottomButtonProps} from "./BottomButton";

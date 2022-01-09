@@ -2,9 +2,9 @@ import {Occurrence} from "../store";
 import {useHistory} from "react-router-dom";
 import {useNonNullMemo} from "../utils";
 import React, {useCallback} from "react";
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
-import Divider from "@material-ui/core/Divider";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import Divider from "@mui/material/Divider";
 import {observer} from "mobx-react-lite";
 
 export interface OccurrenceMenuProps {

@@ -1,46 +1,48 @@
 import "../transitions/chip-fade.scss";
-import {makeStyles} from "@material-ui/core/styles";
-import CardActions from "@material-ui/core/CardActions";
-import Chip from "@material-ui/core/Chip";
-import CardHeader from "@material-ui/core/CardHeader";
-import Card from "@material-ui/core/Card";
-import Skeleton from "@material-ui/lab/Skeleton";
+import CardActions from "@mui/material/CardActions";
+import Chip from "@mui/material/Chip";
+import CardHeader from "@mui/material/CardHeader";
+import MuiCard from "@mui/material/Card";
+import Skeleton from "@mui/material/Skeleton";
 import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {Link} from "react-router-dom";
 import {Course, Occurrence} from "../store";
-import Button from "@material-ui/core/Button";
-import Divider from "@material-ui/core/Divider";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
 import {CSSTransition, TransitionGroup} from "react-transition-group";
 import {observer} from "mobx-react-lite";
 import {markingDecoration} from "../utils";
 import OccurrenceMenu from "./OccurrenceMenu";
+import {styled} from "@mui/material/styles";
 
 export interface CourseViewProps {
     course: Course | undefined,
 }
 
-const useStyles = makeStyles((theme) => ({
-    occurrenceChipBefore: {
-        background: 'rgb(248, 248, 248)',
-    },
-    card: {
-        width: 'calc(100% - 16px) !important',
-        margin: '8px',
-        marginTop: 0,
-        overflow: 'initial !important',
-        '&:last-child': {
-            marginBottom: 0,
-        }
-    },
-    recurrenceSummary: {
-        display: 'flex',
-        padding: '8px',
-        flexWrap: 'wrap',
-        '& > *': {
-            margin: theme.spacing(0.5),
-        },
-    },
-}));
+const Card = styled(MuiCard)`
+    width: calc(100% - ${({theme}) => theme.spacing(2)}) !important;
+    margin: ${({theme}) => theme.spacing(1)};
+    margin-top: 0;
+    overflow: initial !important;
+    
+    &:last-child {
+        margin-bottom: 0;
+    }
+`;
+
+const OccurrenceChipRoot = styled(Chip, { shouldForwardProp(p) { return p !== 'isPast' } })`
+    background: ${({isPast}) => isPast ? 'rgb(248, 248, 248)' : 'inherit'};
+`;
+
+const CardOccurrences = styled('div')`
+    display: flex;
+    padding: ${({theme}) => theme.spacing(1)};
+    flex-wrap: wrap;
+
+    & > * {
+        margin: ${({theme}) => theme.spacing(0.5)};
+    }
+`;
 
 interface OccurrenceChipProps {
     course: Course,
@@ -49,7 +51,6 @@ interface OccurrenceChipProps {
 }
 
 const OccurrenceChip = observer(function OccurrenceChip(props: OccurrenceChipProps) {
-    const classes = useStyles();
     const isPast = props.occurrence.event.isPast;
 
     let onClick = useCallback((e) => {
@@ -59,8 +60,8 @@ const OccurrenceChip = observer(function OccurrenceChip(props: OccurrenceChipPro
     const [markingStyle, markingSuffix] = markingDecoration(props.occurrence.event.marking);
 
     return (
-        <Chip
-            className={isPast ? classes.occurrenceChipBefore : undefined}
+        <OccurrenceChipRoot
+            isPast={isPast}
             style={markingStyle}
             onClick={onClick}
             label={<>{props.occurrence.event.date.value}{markingSuffix}</>}
@@ -125,8 +126,6 @@ const OccurrenceChipSection = observer(function OccurrenceChipSection({ course }
 });
 
 export default observer(function CourseView({ course }: CourseViewProps) {
-    const classes = useStyles();
-
     const isLoaded = !!course;
 
     const onArchiveButtonClick = useCallback(() => {
@@ -140,18 +139,18 @@ export default observer(function CourseView({ course }: CourseViewProps) {
     }, [course?.id]);
 
     return (
-        <Card className={classes.card}>
+        <Card>
             <CardHeader
                 title={!!course ? course.name : <Skeleton/>}
                 subheader={course?.description}
             />
             <Divider/>
             {!!course ? (
-                <div className={classes.recurrenceSummary}>
-                    <OccurrenceChipSection course={course}/>
-                </div>
+                <CardOccurrences>
+                    <OccurrenceChipSection course={course!}/>
+                </CardOccurrences>
             ) : (
-                <Skeleton variant="rect" height={56}/>
+                <Skeleton variant="rectangular" height={56}/>
             )}
             <Divider/>
             <CardActions>

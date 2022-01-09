@@ -7,6 +7,10 @@
     "strictNullChecks": true,
     "resolveJsonModule": true,
     "lib": ["ESNext", "DOM"],
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@mui/styled-engine": ["node_modules/@mui/styled-engine-sc"]
+    }
   }
 }

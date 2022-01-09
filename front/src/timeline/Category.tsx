@@ -1,11 +1,11 @@
-import {makeStyles} from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import Skeleton from "@material-ui/lab/Skeleton";
+import Typography from "@mui/material/Typography";
+import Skeleton from "@mui/material/Skeleton";
 import { observer } from "mobx-react-lite";
 import React from "react";
 import {Event} from "../store";
 import CategoryName from "./CategoryName";
 import EventView from "./EventView";
+import {styled} from "@mui/material/styles";
 
 const CATEGORY_NAMES: Record<CategoryName, string> = {
     'today': "Aujourd'hui",
@@ -19,11 +19,9 @@ const CATEGORY_SKELETON: Record<CategoryName, [number, number]> = {
     rest: [0, 0],
 };
 
-const useStyles = makeStyles({
-    padded: {
-        padding: '12px 8px 8px 8px',
-    },
-});
+const PaddedContainer = styled('div')`
+    padding: 12px 8px 8px 8px;
+`;
 
 interface CategoryProps {
     name: CategoryName;
@@ -33,8 +31,6 @@ interface CategoryProps {
 }
 
 export default observer(function Category({ name, events, expanded, setExpanded }: CategoryProps) {
-    const classes = useStyles();
-
     let eventComponents;
     if (!events) {
         eventComponents = Array(CATEGORY_SKELETON[name][0])
@@ -49,11 +45,11 @@ export default observer(function Category({ name, events, expanded, setExpanded 
     if (eventComponents.length === 0) return <></>;
 
     return <>
-        <div className={classes.padded}>
+        <PaddedContainer>
             <Typography variant="h5" component="h2">
                 {events ? CATEGORY_NAMES[name] : <Skeleton width={CATEGORY_SKELETON[name][1] + '%'} />}
             </Typography>
-        </div>
+        </PaddedContainer>
         {eventComponents}
     </>;
 });

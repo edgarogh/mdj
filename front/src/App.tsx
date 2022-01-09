@@ -1,6 +1,6 @@
-import {makeStyles} from "@material-ui/core/styles";
-import Container from "@material-ui/core/Container";
-import CssBaseline from "@material-ui/core/CssBaseline";
+import {createTheme, ThemeProvider} from "@mui/material/styles";
+import MuiContainer from "@mui/material/Container";
+import CssBaseline from "@mui/material/CssBaseline";
 import React, {useEffect} from "react";
 import {BrowserRouter as Router, Route, Switch, useHistory} from "react-router-dom";
 import {BottomButtonProvider} from "./BottomButton";
@@ -14,27 +14,27 @@ import {useRootStore} from "./StoreProvider";
 import Tabs from "./Tabs";
 import Timeline from "./Timeline";
 import Toast from "./Toast";
+import {styled} from "@mui/material/styles";
 
-const useStyles = makeStyles({
-    container: {
-        padding: '0 !important',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-    },
-    main: {
-        flex: '1',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        overflowY: 'auto',
-        paddingBottom: '8px',
+const Container = styled(MuiContainer)`
+    padding: 0 !important;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+`;
 
-        '& > *': {
-            width: '100%',
-        }
-    },
-});
+const Main = styled('main')`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    padding-bottom: ${({theme}) => theme.spacing(1)};
+
+    & > *:not(.MuiSnackbar-root) {
+        width: 100%;
+    }
+`;
 
 /**
  * Imperative component that captures `react-router`'s history object and creates an handler for when the API returns
@@ -46,27 +46,27 @@ function SetupUnauthorizedHandler() {
 
     useEffect(() => {
         api.onDisconnectedHandler = () => {
-           if (history.location.pathname !== routes.LOGIN) {
-               toasts.showToast('Votre session a expiré, veuillez vous reconnecter', 'info', undefined, 5000);
-               history.push(routes.LOGIN);
-           }
+            if (history.location.pathname !== routes.LOGIN) {
+                toasts.showToast('Votre session a expiré, veuillez vous reconnecter', 'info', undefined, 5000);
+                history.push(routes.LOGIN);
+            }
         };
     }, []);
 
     return <></>;
 }
 
-export default function App() {
-    const classes = useStyles();
+const THEME = createTheme();
 
+export default function App() {
     return (
-        <>
+        <ThemeProvider theme={THEME}>
             <CssBaseline/>
             <BottomButtonProvider>
             <Router>
                 <SetupUnauthorizedHandler />
-                <Container className={classes.container} maxWidth="sm">
-                    <main className={classes.main}>
+                <Container maxWidth="sm">
+                    <Main>
                         <Switch>
                             <Route path={routes.LOGIN}>
                                 <LoginScreen/>
@@ -88,11 +88,11 @@ export default function App() {
                             </Route>
                         </Switch>
                         <Toast bottom={56 + 16}/>
-                    </main>
+                    </Main>
                     <Tabs/>
                 </Container>
             </Router>
             </BottomButtonProvider>
-        </>
+        </ThemeProvider>
     );
 }

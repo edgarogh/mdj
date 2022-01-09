@@ -1,10 +1,9 @@
-import {makeStyles} from "@material-ui/core/styles";
-import Divider from "@material-ui/core/Divider";
-import IconButton from "@material-ui/core/IconButton";
-import InputBase from "@material-ui/core/InputBase";
-import Paper from "@material-ui/core/Paper";
-import AddIcon from "@material-ui/icons/Add";
-import SearchIcon from "@material-ui/icons/Search";
+import Divider from "@mui/material/Divider";
+import IconButton from "@mui/material/IconButton";
+import InputBase from "@mui/material/InputBase";
+import Paper from "@mui/material/Paper";
+import AddIcon from "@mui/icons-material/Add";
+import SearchIcon from "@mui/icons-material/Search";
 import {observer} from "mobx-react-lite";
 import React, {useCallback, useMemo, useState} from "react";
 import {Link} from "react-router-dom";
@@ -13,6 +12,7 @@ import EmptyState from "./EmptyState";
 import preload from "./preload";
 import {Course} from "./store";
 import {useRootStore} from "./StoreProvider";
+import {styled} from "@mui/material/styles";
 
 const EMPTY_STATE = preload(new URL('../assets/empty_state_courses.min.svg', import.meta.url));
 const EMPTY_STATE_SEARCH = preload(new URL('../assets/empty_state_courses_search.min.svg', import.meta.url));
@@ -34,30 +34,30 @@ function searchCourses(courses: Course[], searchInput: string) {
         .map(([course, _]) => course);
 }
 
-const useStyles = makeStyles((theme) => ({
-    search: {
-        width: `calc(100% - ${2 * theme.spacing(1)}px) !important`,
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        margin: theme.spacing(1),
-        padding: '2px 4px',
-    },
-    searchInput: {
-        marginLeft: theme.spacing(1),
-        flex: 1,
-    },
-    searchIconButton: {
-        padding: 10,
-    },
-    searchDivider: {
-        height: 28,
-        margin: 4,
-    },
-}));
+const SearchBarRoot = styled(Paper)`
+    width: calc(100% - ${({theme}) => theme.spacing(2)}) !important;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin: ${({theme}) => theme.spacing(1)};
+    padding: 2px 4px;
+`;
+
+const SearchBarInputBase = styled(InputBase)`
+    margin-left: ${({theme}) => theme.spacing(1)};
+    flex: 1;
+`;
+
+const SearchBarDivider = styled(Divider)`
+    height: 28px;
+    margin: 4px;
+`;
+
+const SearchBarIconButton = styled(IconButton)`
+    padding: 10px;
+`;
 
 export default observer(function CourseListScreen() {
-    const classes = useStyles();
     const { courseStore } = useRootStore();
 
     const courses = courseStore.courses;
@@ -72,24 +72,21 @@ export default observer(function CourseListScreen() {
 
     return (
         <>
-            <Paper className={classes.search}>
-                <InputBase
-                    className={classes.searchInput}
+            <SearchBarRoot>
+                <SearchBarInputBase
                     placeholder={"Rechercher un cours"}
                     disabled={searchDisabled}
                     value={searchInput}
                     onChange={onSearchChange}
                 />
-                <IconButton
-                    className={classes.searchIconButton}
+                <SearchBarIconButton
                     disabled={searchDisabled}
                     aria-hidden // This button is useless, it just hides the keyboard on mobile by getting focus
                 >
                     <SearchIcon/>
-                </IconButton>
-                <Divider className={classes.searchDivider} orientation="vertical"/>
-                <IconButton
-                    className={classes.searchIconButton}
+                </SearchBarIconButton>
+                <SearchBarDivider orientation="vertical"/>
+                <SearchBarIconButton
                     disabled={courseStore.isLoading}
                     title={"Ajouter un cours"}
                     aria-label={"Ajouter un cours"}
@@ -97,8 +94,8 @@ export default observer(function CourseListScreen() {
                     to="/courses/new"
                 >
                     <AddIcon/>
-                </IconButton>
-            </Paper>
+                </SearchBarIconButton>
+            </SearchBarRoot>
             {courseStore.isLoading || filteredCourses.length > 0 ? (
                 <CourseList courses={courseStore.isLoading ? undefined : filteredCourses}/>
             ) : courses.length > 0 ? (

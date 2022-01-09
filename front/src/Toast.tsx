@@ -1,23 +1,20 @@
-import {makeStyles} from "@material-ui/core/styles";
-import Snackbar from "@material-ui/core/Snackbar";
-import Alert from "@material-ui/lab/Alert";
+import MuiSnackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 import {observer} from "mobx-react-lite";
 import React, {useEffect} from "react";
 import {useRootStore} from "./StoreProvider";
 import {useNonNullMemo} from "./utils";
+import {styled} from "@mui/material/styles";
 
-const useStyles = makeStyles({
-    snackbar: {
-        bottom: (props: ToastProps) => `${props.bottom}px`
-    },
-});
+const Snackbar = styled(MuiSnackbar)`
+    bottom: ${(props: ToastProps) => props.bottom}px;
+`;
 
 export interface ToastProps {
     bottom: number;
 }
 
 export default observer(function Toast(props: ToastProps) {
-    const classes = useStyles(props);
     const { toasts } = useRootStore();
     const currentToast = toasts.current;
 
@@ -30,9 +27,9 @@ export default observer(function Toast(props: ToastProps) {
 
     return (
         <Snackbar
-            className={classes.snackbar}
             open={!!currentToast}
             message={severity ? undefined : text}
+            bottom={props.bottom}
         >
             {severity ? <Alert variant="filled" severity={severity}>{text}</Alert> : undefined}
         </Snackbar>

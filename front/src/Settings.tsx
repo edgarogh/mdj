@@ -1,11 +1,10 @@
-import Button from "@material-ui/core/Button";
-import IconButton from "@material-ui/core/IconButton";
-import Paper from "@material-ui/core/Paper";
-import {makeStyles} from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import ExitToApp from "@material-ui/icons/ExitToApp";
-import FileCopyIcon from "@material-ui/icons/FileCopy";
-import Skeleton from "@material-ui/lab/Skeleton";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import ExitToApp from "@mui/icons-material/ExitToApp";
+import FileCopyIcon from "@mui/icons-material/FileCopy";
+import Skeleton from "@mui/material/Skeleton";
 import copy from "copy-to-clipboard";
 import {observer} from "mobx-react-lite";
 import React, {useCallback, useMemo} from "react";
@@ -13,49 +12,57 @@ import {Link} from "react-router-dom";
 import ArchiveDialogs from "./ArchiveDialogs";
 import * as routes from "./routes";
 import {useRootStore} from "./StoreProvider";
+import {styled} from "@mui/material/styles";
 
-const useStyles = makeStyles({
-    paper: {
-        borderRadius: 0,
-        padding: '8px',
-        '&:not(:last-child)': {
-            marginBottom: '12px',
-        },
-    },
-    paperInner: {
-        display: 'flex',
-        flexDirection: 'row',
-    },
-    linkButton: {
-        marginRight: '8px',
-        flex: 1,
-        fontFamily: 'monospace',
-        textTransform: 'none',
-        textOverflow: 'ellipsis',
-        overflow: 'hidden',
-        whiteSpace: 'nowrap',
-        textAlign: 'left',
-        justifyContent: 'start',
-    },
-    archiveRow: {
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        marginTop: '12px',
-        '& > *': {
-            width: '80%',
-        },
-    },
-    disconnectButtonContainer: {
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'end',
-        margin: '0 8px',
-    },
-});
+const Root = styled('div')`
+    padding-top: ${({theme}) => theme.spacing(1)};
+`;
+
+const SettingsSection = styled(Paper)`
+    border-radius: 0;
+    padding: ${({theme}) => theme.spacing(1)};
+    
+    &:not(:last-child) {
+        margin-bottom: 12px;
+    }
+`;
+
+const LinkButton = styled(Button)`
+    margin-right: ${({theme}) => theme.spacing(1)};
+    flex: 1;
+    font-family: monospace;
+    text-transform: none;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: left;
+    justify-content: start;
+`;
+
+const CopyLinkContainer = styled('div')`
+    display: flex;
+    flex-direction: row;
+`;
+
+const ArchiveButtonContainer = styled('div')`
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    margin-top: ${({theme}) => theme.spacing(1.5)};
+    
+    & > * {
+        width: 80%;
+    }
+`;
+
+const DisconnectButtonContainer = styled('div')`
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+    margin: 0 ${({theme}) => theme.spacing(1)};
+`;
 
 export default observer(function Settings() {
-    const classes = useStyles();
     const store = useRootStore();
     const accountId = store.accountInfo.id;
 
@@ -69,33 +76,33 @@ export default observer(function Settings() {
     }, [icalUrl]);
 
     return (
-        <div style={{ paddingTop: '8px' }}>
-            <Paper className={classes.paper}>
+        <Root>
+            <SettingsSection>
                 <Typography variant="h6" component="h2">Importer dans un calendrier</Typography>
-                <div className={classes.paperInner}>
-                    <Button disabled={!icalUrl} className={classes.linkButton} variant="outlined" onClick={doCopy}>
+                <CopyLinkContainer>
+                    <LinkButton disabled={!icalUrl} variant="outlined" onClick={doCopy}>
                         {icalUrl ? (
                             icalUrl
                         ): (
                             <Skeleton width="100%"/>
                         )}
-                    </Button>
+                    </LinkButton>
                     <IconButton disabled={!icalUrl} onClick={doCopy}>
                         <FileCopyIcon/>
                     </IconButton>
-                </div>
-            </Paper>
-            <Paper className={classes.paper}>
+                </CopyLinkContainer>
+            </SettingsSection>
+            <SettingsSection>
                 <Typography variant="h6" component="h2">Archive</Typography>
                 <Typography variant="body1" color="textSecondary">Votre archive rassemble les cours manuellement marqués comme archivés. Elle permet de mettre de côté des cours arrivés à leur échéance sans pour autant les supprimer définitivement.</Typography>
-                <div className={classes.archiveRow}>
+                <ArchiveButtonContainer>
                     <Button variant="outlined" to={routes.ARCHIVE_COURSES} component={Link}>Ouvrir</Button>
-                </div>
+                </ArchiveButtonContainer>
                 <ArchiveDialogs/>
-            </Paper>
-            <div className={classes.disconnectButtonContainer}>
+            </SettingsSection>
+            <DisconnectButtonContainer>
                 <Button disabled={!accountId} startIcon={<ExitToApp/>} href={routes.LOGOUT}>Se déconnecter</Button>
-            </div>
-        </div>
+            </DisconnectButtonContainer>
+        </Root>
     );
 });

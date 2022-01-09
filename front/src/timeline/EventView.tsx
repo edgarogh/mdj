@@ -1,21 +1,21 @@
-import Accordion from "@material-ui/core/Accordion";
-import AccordionDetails from "@material-ui/core/AccordionDetails";
-import AccordionSummary from "@material-ui/core/AccordionSummary";
-import ButtonBaseActions from "@material-ui/core/ButtonBaseActions";
-import Chip from "@material-ui/core/Chip";
-import FormControl from "@material-ui/core/FormControl";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import Select from "@material-ui/core/Select";
-import {makeStyles} from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
-import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import Skeleton from "@material-ui/lab/Skeleton";
+import Accordion from "@mui/material/Accordion";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import AccordionSummary from "@mui/material/AccordionSummary";
+import {ButtonBaseActions} from "@mui/material";
+import MuiChip from "@mui/material/Chip";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import Typography from "@mui/material/Typography";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import Skeleton from "@mui/material/Skeleton";
 import {observer} from "mobx-react-lite";
 import React, {useCallback, useMemo, useState} from "react";
 import {Event} from "../store";
 import {markingDecoration} from "../utils";
 import CategoryName from "./CategoryName";
+import {styled} from "@mui/material/styles";
 
 let id = 0;
 
@@ -23,32 +23,30 @@ const SCROLL_ARGS: ScrollIntoViewOptions = { behavior: 'auto', block: 'center', 
 const DATE_FORMAT_CLOSER: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric' };
 const DATE_FORMAT_FURTHER: Intl.DateTimeFormatOptions = { day:'numeric', month:'numeric', year:'2-digit' };
 
-const useStyles = makeStyles((theme) => ({
-    skeleton: {
-        pointerEvents: 'none',
-    },
-    heading: {
-        fontSize: theme.typography.pxToRem(15),
-        flexShrink: 0,
-    },
-    chip: {
-        marginLeft: '12px',
-        pointerEvents: 'none',
-    },
-    summary: {
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-    },
-    secondaryHeading: {
-        fontSize: theme.typography.pxToRem(15),
-        color: theme.palette.text.secondary,
-    },
-    markSelect: {
-        width: '100%',
-    },
-}));
+const AccordionNoPointer = styled(Accordion, { shouldForwardProp(p) { return p !== 'noPointer' } })`
+    pointer-events: ${({noPointer}) => noPointer ? 'none' : 'inherit'};
+`;
+
+const TypographyHeading = styled(Typography)`
+    font-size: ${({theme}) => theme.typography.pxToRem(15)};
+`;
+
+const TypographySecondaryHeading = styled(Typography)`
+    font-size: ${({theme}) => theme.typography.pxToRem(15)};
+    color: ${({theme}) => theme.palette.text.secondary};
+`;
+
+const Chip = styled(MuiChip)`
+    margin-left: ${({theme}) => theme.spacing(1.5)};
+    pointer-events: none;
+`;
+
+const AccordionSummaryInner = styled('div')`
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+`;
 
 export interface EventViewProps {
     category: CategoryName;
@@ -58,8 +56,6 @@ export interface EventViewProps {
 }
 
 export default observer(function EventView({ category, event, expanded, setExpanded }: EventViewProps) {
-    const classes = useStyles();
-
     const name = event?.course?.name;
     const marking = event?.marking;
 
@@ -98,28 +94,27 @@ export default observer(function EventView({ category, event, expanded, setExpan
     }, [category, event?.date.value]);
 
     return (
-        <Accordion
+        <AccordionNoPointer
             id={id || undefined}
-            className={!event ? classes.skeleton : ''}
             expanded={!!event && (expanded == id)}
+            noPointer={!event}
             onChange={onExpandChanged}
             ref={ref}
         >
-            <AccordionSummary className={classes.summary} expandIcon={event && <ExpandMoreIcon />} action={rippleRef}>
-                {event && name ? <div className={classes.summary}>
-                    <Typography
+            <AccordionSummary expandIcon={event && <ExpandMoreIcon />} action={rippleRef}>
+                {event && name ? <AccordionSummaryInner>
+                    <TypographyHeading
                         component="h4"
                         style={markingStyle}
-                        className={classes.heading}
                     >
                         {name}
                         {markingSuffix}
-                        <Chip className={classes.chip} variant="outlined" size="small" label={`J+${event.j}`}/>
-                    </Typography>
-                    <Typography className={classes.secondaryHeading}>
+                        <Chip variant="outlined" size="small" label={`J+${event.j}`}/>
+                    </TypographyHeading>
+                    <TypographySecondaryHeading>
                         {formattedDate}
-                    </Typography>
-                </div> : (
+                    </TypographySecondaryHeading>
+                </AccordionSummaryInner> : (
                     <Skeleton width="33%"/>
                 )}
             </AccordionSummary>
@@ -128,13 +123,15 @@ export default observer(function EventView({ category, event, expanded, setExpan
                     <EventViewEditMark event={event}/>
                 </AccordionDetails>
             )}
-        </Accordion>
+        </AccordionNoPointer>
     );
 });
 
-const EventViewEditMark = observer(function EventViewEditMark({ event }: { event: Event }) {
-    const classes = useStyles();
+const MarkSelectFormControl = styled(FormControl)`
+    width: 100%;
+`;
 
+const EventViewEditMark = observer(function EventViewEditMark({ event }: { event: Event }) {
     const [mark, setMark] = useState(event.marking || '');
 
     const onMarkChange = useCallback((e) => {
@@ -143,7 +140,7 @@ const EventViewEditMark = observer(function EventViewEditMark({ event }: { event
     }, [event?.course, event?.j, setMark]);
 
     return (
-        <FormControl className={classes.markSelect} variant="outlined">
+        <MarkSelectFormControl variant="outlined">
             <InputLabel id={`mark-label-${event.course?.id || id++}-${event.j}`}>Marquage</InputLabel>
             <Select
                 id={`mark-${event.course?.id || id++}-${event.j}`}
@@ -156,6 +153,6 @@ const EventViewEditMark = observer(function EventViewEditMark({ event }: { event
                 <MenuItem value="further_learning_required">Approfondir</MenuItem>
                 <MenuItem value="done">Terminé</MenuItem>
             </Select>
-        </FormControl>
+        </MarkSelectFormControl>
     );
 });

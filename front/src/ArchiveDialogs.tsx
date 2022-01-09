@@ -1,44 +1,35 @@
-import Dialog from "@material-ui/core/Dialog";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import DialogContent from "@material-ui/core/DialogContent";
-import IconButton from "@material-ui/core/IconButton";
-import Typography from "@material-ui/core/Typography";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemText from "@material-ui/core/ListItemText";
-import ListItemSecondaryAction from "@material-ui/core/ListItemSecondaryAction";
-import CircularProgress from "@material-ui/core/CircularProgress";
+import MuiDialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import IconButton from "@mui/material/IconButton";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import ListItemSecondaryAction from "@mui/material/ListItemSecondaryAction";
+import CircularProgress from "@mui/material/CircularProgress";
 import React, {useCallback, useEffect, useState} from "react";
 import {useHistory, useRouteMatch} from "react-router-dom";
-import CloseIcon from '@material-ui/icons/Close';
-import RestoreIcon from '@material-ui/icons/Restore';
+import CloseIcon from '@mui/icons-material/Close';
+import RestoreIcon from '@mui/icons-material/Restore';
 import * as routes from './routes';
-import {makeStyles} from "@material-ui/core/styles";
 import {useRootStore} from "./StoreProvider";
+import {styled} from "@mui/material/styles";
 
-const useStyles = makeStyles((theme) => ({
-    dialog: {
-        '& .MuiDialog-paper': {
-            width: '100%',
-        }
-    },
-    dialogTitle: {
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    closeButton: {
-        position: 'absolute',
-        right: theme.spacing(1),
-        top: theme.spacing(1),
-        color: theme.palette.grey[500],
+const Dialog = styled(MuiDialog)`
+    & .MuiDialog-paper {
+        width: 100%;
     }
-}));
+`;
+
+const DialogCloseButton = styled(IconButton)`
+    margin: 14px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: ${({theme}) => theme.palette.grey[500]};
+`;
 
 export default function ArchiveDialogs() {
-    const classes = useStyles();
-
     const history = useHistory();
     const route = useRouteMatch([routes.ARCHIVE_COURSES]);
     const isOpen = route != undefined;
@@ -57,12 +48,12 @@ export default function ArchiveDialogs() {
     }, [route?.path]);
 
     return (
-        <Dialog className={classes.dialog} style={{width: '100%'}} open={!!route} onClose={history.goBack}>
-            <DialogTitle disableTypography>
-                <Typography variant="h6">Archive</Typography>
-                <IconButton className={classes.closeButton} aria-label="close" onClick={history.goBack}>
+        <Dialog style={{width: '100%'}} open={!!route} onClose={history.goBack}>
+            <DialogTitle>
+                Archive
+                <DialogCloseButton aria-label="close" onClick={history.goBack}>
                     <CloseIcon />
-                </IconButton>
+                </DialogCloseButton>
             </DialogTitle>
             <DialogContent dividers>
                 {archived ? (
