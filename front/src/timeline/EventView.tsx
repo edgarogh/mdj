@@ -13,9 +13,10 @@ import Skeleton from "@mui/material/Skeleton";
 import {observer} from "mobx-react-lite";
 import React, {useCallback, useMemo, useState} from "react";
 import {Event} from "../store";
-import {markingDecoration} from "../utils";
+import {decodeColor, markingDecoration} from "../utils";
 import CategoryName from "./CategoryName";
 import {styled} from "@mui/material/styles";
+import CompletionChip from "../CompletionChip";
 
 let id = 0;
 
@@ -58,6 +59,7 @@ export interface EventViewProps {
 export default observer(function EventView({ category, event, expanded, setExpanded }: EventViewProps) {
     const name = event?.course?.name;
     const marking = event?.marking;
+    const previousMarking = event?.previousMarking;
 
     const id = useMemo(() => event?.course && (
         `tl-event-${event.course.id}-${event.date.value}`
@@ -75,6 +77,8 @@ export default observer(function EventView({ category, event, expanded, setExpan
     const rippleRef = (ref: ButtonBaseActions | null) => idInHash && ref?.focusVisible();
 
     const [markingStyle, markingSuffix] = markingDecoration(marking);
+    const chipColor = decodeColor(marking);
+    const chipColorPrevious = decodeColor(previousMarking);
 
     const formattedDate = useMemo(() => {
         let format: Intl.DateTimeFormatOptions;
@@ -103,12 +107,9 @@ export default observer(function EventView({ category, event, expanded, setExpan
         >
             <AccordionSummary expandIcon={event && <ExpandMoreIcon />} action={rippleRef}>
                 {event && name ? <AccordionSummaryInner>
-                    <TypographyHeading
-                        component="h4"
-                        style={markingStyle}
-                    >
+                    <TypographyHeading component="h4">
                         {name}
-                        {markingSuffix}
+                        <CompletionChip colorPrev={chipColorPrevious} colorCurrent={chipColor} />
                         <Chip variant="outlined" size="small" label={`J+${event.j}`}/>
                     </TypographyHeading>
                     <TypographySecondaryHeading>

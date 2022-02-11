@@ -1,4 +1,4 @@
-import {Color} from "@material-ui/lab";
+import {Color} from "@mui/material";
 import {makeAutoObservable, runInAction} from "mobx";
 import Day from "./Day";
 
@@ -431,6 +431,7 @@ export class Event {
     j: number;
     marking: string | null = null;
     date: Day;
+    previous: { j: number, marking: string | null } | null = null;
 
     get course() {
         return this.store.rootStore.courseStore.findCourse(this.courseId) || null;
@@ -438,6 +439,15 @@ export class Event {
 
     get isPast() {
         return this.date.isBefore(Day.today());
+    }
+
+    get previousEvent(): Event | null {
+        return this.store.timeline
+            .find((e) => e.courseId === this.courseId && e.j === this.previous?.j) || null;
+    }
+
+    get previousMarking() {
+        return this.previousEvent?.marking || this.previous?.marking || null;
     }
 
     constructor(store: EventStore, json: any) {
@@ -452,6 +462,13 @@ export class Event {
         this.marking = json.marking || null;
         this.date = new Day(json.date);
         this.courseId = json.course;
+
+        if (typeof json.previous_j === 'number') {
+            this.previous = {
+                j: json.previous_j,
+                marking: json.previous_marking || null,
+            };
+        }
     }
 
     mark(mark: string) {
