@@ -51,24 +51,32 @@ const Container = styled('span')`
     margin-left: ${({theme}) => theme.spacing(1.5)};
 
     & *:not(:last-child) > svg {
-        opacity: 0;
-
         transition: opacity 0.2s;
     }
 
     & *:nth-child(2) {
-        margin-left: -14px;
+        margin-left: 4px;
         box-shadow: 0 0 0 2px white;
 
         transition: margin-left 0.2s;
     }
 
-    &:hover *:not(:last-child) > svg {
-        opacity: 1;
-    }
+    @media (hover: hover) and (pointer: fine) {
+        & *:nth-child(2) {
+            margin-left: -14px;
+        }
 
-    &:hover *:nth-child(2) {
-        margin-left: 4px;
+        & *:not(:last-child) > svg {
+            opacity: 0;
+        }
+
+        &:hover *:nth-child(2) {
+            margin-left: inherit;
+        }
+
+        &:hover *:not(:last-child) > svg {
+            opacity: inherit;
+        }
     }
 `;
 
