@@ -11,7 +11,7 @@ import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import {CSSTransition, TransitionGroup} from "react-transition-group";
 import {observer} from "mobx-react-lite";
-import {markingDecoration} from "../utils";
+import {decodeColor} from "../utils";
 import OccurrenceMenu from "./OccurrenceMenu";
 import {styled} from "@mui/material/styles";
 
@@ -30,8 +30,9 @@ const Card = styled(MuiCard)`
     }
 `;
 
-const OccurrenceChipRoot = styled(Chip, { shouldForwardProp(p) { return p !== 'isPast' } })`
+const OccurrenceChipRoot = styled(Chip, { shouldForwardProp(p) { return p !== 'isPast' && p !== 'color' } })`
     background: ${({isPast}) => isPast ? 'rgb(248, 248, 248)' : 'inherit'};
+    ${({ color }) => color ? `border: 1px solid ${color}` : ''};
 `;
 
 const CardOccurrences = styled('div')`
@@ -57,14 +58,14 @@ const OccurrenceChip = observer(function OccurrenceChip(props: OccurrenceChipPro
         props.onClick?.([e.target, props.occurrence]);
     }, [props.course.id]);
 
-    const [markingStyle, markingSuffix] = markingDecoration(props.occurrence.event.marking);
+    const markingColor = decodeColor(props.occurrence.event.marking);
 
     return (
         <OccurrenceChipRoot
             isPast={isPast}
-            style={markingStyle}
             onClick={onClick}
-            label={<>{props.occurrence.event.date.value}{markingSuffix}</>}
+            label={props.occurrence.event.date.value}
+            color={markingColor}
         />
     )
 });
