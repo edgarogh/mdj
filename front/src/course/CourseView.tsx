@@ -11,7 +11,7 @@ import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import {CSSTransition, TransitionGroup} from "react-transition-group";
 import {observer} from "mobx-react-lite";
-import {decodeColor} from "../utils";
+import {decodeMarkingColor} from "../utils";
 import OccurrenceMenu from "./OccurrenceMenu";
 import {styled} from "@mui/material/styles";
 
@@ -58,7 +58,7 @@ const OccurrenceChip = observer(function OccurrenceChip(props: OccurrenceChipPro
         props.onClick?.([e.target, props.occurrence]);
     }, [props.course.id]);
 
-    const markingColor = decodeColor(props.occurrence.event.marking);
+    const markingColor = decodeMarkingColor(props.occurrence.event.marking);
 
     return (
         <OccurrenceChipRoot

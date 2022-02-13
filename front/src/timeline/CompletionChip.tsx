@@ -5,13 +5,13 @@ import RestoreIcon from "@mui/icons-material/Restore";
 import CheckIcon from "@mui/icons-material/Check";
 import Tooltip from "@mui/material/Tooltip";
 
-const Chip = styled(MuiChip, { shouldForwardProp(p) { return p !== 'backgroundColor' } })`
+const Chip = styled(MuiChip, { shouldForwardProp(p) { return p !== 'backgroundColor' && p !== 'color' } })`
     width: 22px;
     height: 22px;
     background: ${(props) => props.backgroundColor};
     border: none;
     
-    & > svg:first-child { margin: 0; fill: white; }
+    & > svg:first-child { margin: 0; fill: ${({ color }) => color}; }
     & > span:last-child { display: none; }
 `;
 
@@ -42,6 +42,7 @@ function SingleCompletionChip(props: SingleCompletionChipProps) {
                 size="small"
                 icon={props.icon === 'previous' ? <RestoreIcon/> : <CheckIcon/>}
                 backgroundColor={COLORS[props.color]}
+                color={props.color === 'yellow' ? 'black' : 'white'}
             />
         </Tooltip>
     );

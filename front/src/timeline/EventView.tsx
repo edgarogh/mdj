@@ -13,10 +13,10 @@ import Skeleton from "@mui/material/Skeleton";
 import {observer} from "mobx-react-lite";
 import React, {useCallback, useMemo, useState} from "react";
 import {Event} from "../store";
-import {decodeColor, markingDecoration} from "../utils";
+import {decodeMarkingColor} from "../utils";
 import CategoryName from "./CategoryName";
 import {styled} from "@mui/material/styles";
-import CompletionChip from "../CompletionChip";
+import CompletionChip from "./CompletionChip";
 
 let id = 0;
 
@@ -76,9 +76,8 @@ export default observer(function EventView({ category, event, expanded, setExpan
     const ref = (ref: HTMLDivElement | null) => idInHash && ref?.scrollIntoView(SCROLL_ARGS);
     const rippleRef = (ref: ButtonBaseActions | null) => idInHash && ref?.focusVisible();
 
-    const [markingStyle, markingSuffix] = markingDecoration(marking);
-    const chipColor = decodeColor(marking);
-    const chipColorPrevious = decodeColor(previousMarking);
+    const chipColor = decodeMarkingColor(marking);
+    const chipColorPrevious = decodeMarkingColor(previousMarking);
 
     const formattedDate = useMemo(() => {
         let format: Intl.DateTimeFormatOptions;

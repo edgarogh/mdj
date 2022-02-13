@@ -39,7 +39,7 @@ export function markingDecoration(marking: string | undefined | null): readonly 
     }
 }
 
-export function decodeColor(marking: string | undefined | null): 'green' | 'yellow' | 'orange' | 'red' | null {
+export function decodeMarkingColor(marking: string | undefined | null): 'green' | 'yellow' | 'orange' | 'red' | null {
     switch (marking) {
         default:
             console.warn("Unknown marking " + marking);
@@ -47,8 +47,16 @@ export function decodeColor(marking: string | undefined | null): 'green' | 'yell
         case null:
         case undefined:
         case '': return null;
+
+        case 'yellow':
         case 'started': return 'yellow';
+
+        case 'orange':
         case 'further_learning_required': return 'orange';
+
+        case 'red': return 'red';
+
+        case 'green':
         case 'done': return 'green';
     }
 }
