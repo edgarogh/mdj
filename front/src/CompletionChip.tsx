@@ -61,6 +61,10 @@ const Container = styled('span')`
         transition: margin-left 0.2s;
     }
 
+    .Mui-focusVisible & *:nth-child(2) {
+        box-shadow: 0 0 0 2px #e0e0e0;
+    }
+
     @media (hover: hover) and (pointer: fine) {
         & *:nth-child(2) {
             margin-left: -14px;
