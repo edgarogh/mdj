@@ -149,9 +149,10 @@ const EventViewEditMark = observer(function EventViewEditMark({ event }: { event
                 onChange={onMarkChange}
             >
                 <MenuItem value=""><em>Aucun</em></MenuItem>
-                <MenuItem value="started">Démarré</MenuItem>
-                <MenuItem value="further_learning_required">Approfondir</MenuItem>
-                <MenuItem value="done">Terminé</MenuItem>
+                <MenuItem value="red">Rouge</MenuItem>
+                <MenuItem value="orange">Orange</MenuItem>
+                <MenuItem value="yellow">Jaune</MenuItem>
+                <MenuItem value="green">Vert</MenuItem>
             </Select>
         </MarkSelectFormControl>
     );

@@ -47,16 +47,9 @@ export function decodeMarkingColor(marking: string | undefined | null): 'green' 
         case null:
         case undefined:
         case '': return null;
-
-        case 'yellow':
-        case 'started': return 'yellow';
-
-        case 'orange':
-        case 'further_learning_required': return 'orange';
-
+        case 'yellow': return 'yellow';
+        case 'orange': return 'orange';
         case 'red': return 'red';
-
-        case 'green':
-        case 'done': return 'green';
+        case 'green': return 'green';
     }
 }
