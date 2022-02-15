@@ -42,9 +42,10 @@ export default observer(function OccurrenceMenu(props: OccurrenceMenuProps) {
             {!old && <MenuItem onClick={onViewInTimelinePressed}>Voir dans le fil</MenuItem>}
             {!old && <Divider/>}
             <OccurrenceMenuItemMarking onMarkingPressed={onMarkingPressed} value="" selection={!marking || marking === ''} label={"À venir"}/>
-            <OccurrenceMenuItemMarking onMarkingPressed={onMarkingPressed} value="started" selection={marking} label={"Commencé"}/>
-            <OccurrenceMenuItemMarking onMarkingPressed={onMarkingPressed} value="further_learning_required" selection={marking} label={"À approfondir"}/>
-            <OccurrenceMenuItemMarking onMarkingPressed={onMarkingPressed} value="done" selection={marking} label={"Terminé"}/>
+            <OccurrenceMenuItemMarking onMarkingPressed={onMarkingPressed} value="red" selection={marking} label={"Rouge"}/>
+            <OccurrenceMenuItemMarking onMarkingPressed={onMarkingPressed} value="orange" selection={marking} label={"Orange"}/>
+            <OccurrenceMenuItemMarking onMarkingPressed={onMarkingPressed} value="yellow" selection={marking} label={"Jaune"}/>
+            <OccurrenceMenuItemMarking onMarkingPressed={onMarkingPressed} value="green" selection={marking} label={"Vert"}/>
         </Menu>
     </>;
 });

@@ -13,9 +13,10 @@ import Skeleton from "@mui/material/Skeleton";
 import {observer} from "mobx-react-lite";
 import React, {useCallback, useMemo, useState} from "react";
 import {Event} from "../store";
-import {markingDecoration} from "../utils";
+import {decodeMarkingColor} from "../utils";
 import CategoryName from "./CategoryName";
 import {styled} from "@mui/material/styles";
+import CompletionChip from "./CompletionChip";
 
 let id = 0;
 
@@ -58,6 +59,7 @@ export interface EventViewProps {
 export default observer(function EventView({ category, event, expanded, setExpanded }: EventViewProps) {
     const name = event?.course?.name;
     const marking = event?.marking;
+    const previousMarking = event?.previousMarking;
 
     const id = useMemo(() => event?.course && (
         `tl-event-${event.course.id}-${event.date.value}`
@@ -74,7 +76,8 @@ export default observer(function EventView({ category, event, expanded, setExpan
     const ref = (ref: HTMLDivElement | null) => idInHash && ref?.scrollIntoView(SCROLL_ARGS);
     const rippleRef = (ref: ButtonBaseActions | null) => idInHash && ref?.focusVisible();
 
-    const [markingStyle, markingSuffix] = markingDecoration(marking);
+    const chipColor = decodeMarkingColor(marking);
+    const chipColorPrevious = decodeMarkingColor(previousMarking);
 
     const formattedDate = useMemo(() => {
         let format: Intl.DateTimeFormatOptions;
@@ -103,12 +106,9 @@ export default observer(function EventView({ category, event, expanded, setExpan
         >
             <AccordionSummary expandIcon={event && <ExpandMoreIcon />} action={rippleRef}>
                 {event && name ? <AccordionSummaryInner>
-                    <TypographyHeading
-                        component="h4"
-                        style={markingStyle}
-                    >
+                    <TypographyHeading component="h4">
                         {name}
-                        {markingSuffix}
+                        <CompletionChip colorPrev={chipColorPrevious} colorCurrent={chipColor} />
                         <Chip variant="outlined" size="small" label={`J+${event.j}`}/>
                     </TypographyHeading>
                     <TypographySecondaryHeading>
@@ -149,9 +149,10 @@ const EventViewEditMark = observer(function EventViewEditMark({ event }: { event
                 onChange={onMarkChange}
             >
                 <MenuItem value=""><em>Aucun</em></MenuItem>
-                <MenuItem value="started">Démarré</MenuItem>
-                <MenuItem value="further_learning_required">Approfondir</MenuItem>
-                <MenuItem value="done">Terminé</MenuItem>
+                <MenuItem value="red">Rouge</MenuItem>
+                <MenuItem value="orange">Orange</MenuItem>
+                <MenuItem value="yellow">Jaune</MenuItem>
+                <MenuItem value="green">Vert</MenuItem>
             </Select>
         </MarkSelectFormControl>
     );

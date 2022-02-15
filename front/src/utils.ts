@@ -38,3 +38,18 @@ export function markingDecoration(marking: string | undefined | null): readonly 
         case 'done': return [MARKING_DECORATION_STYLE_DONE, MARKING_DECORATION_SUFFIX_NONE];
     }
 }
+
+export function decodeMarkingColor(marking: string | undefined | null): 'green' | 'yellow' | 'orange' | 'red' | null {
+    switch (marking) {
+        default:
+            console.warn("Unknown marking " + marking);
+        // deliberate fallthrough
+        case null:
+        case undefined:
+        case '': return null;
+        case 'yellow': return 'yellow';
+        case 'orange': return 'orange';
+        case 'red': return 'red';
+        case 'green': return 'green';
+    }
+}

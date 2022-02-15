@@ -11,6 +11,7 @@ mod api_result;
 mod asset;
 mod model;
 mod schema;
+mod schema_ext;
 
 use crate::api_result::ApiResult;
 use crate::asset::{Asset, AssetName};
@@ -545,32 +546,11 @@ struct EventAndCourse {
     course_description: Option<String>,
 
     j: i64,
+    previous_j: Option<i64>,
     marking: Option<String>,
+    previous_marking: Option<String>,
     date: NaiveDate,
     cache_key: Option<Uuid>,
-}
-
-macro_rules! event_and_course_select {
-    () => {{
-        use schema::courses::dsl as c_dsl;
-        use schema::events::dsl as e_dsl;
-
-        e_dsl::events
-            .inner_join(c_dsl::courses)
-            .select((
-                e_dsl::course,
-                c_dsl::owner,
-                c_dsl::name,
-                c_dsl::description,
-                e_dsl::j,
-                e_dsl::marking,
-                e_dsl::date,
-                e_dsl::cache_key,
-            ))
-            .filter(e_dsl::course.eq(c_dsl::id).and(c_dsl::archived.eq(false)))
-            .order_by(e_dsl::date.asc())
-            .then_order_by(e_dsl::j.asc())
-    }};
 }
 
 #[get("/api/timeline?<after>")]
@@ -580,10 +560,10 @@ async fn timeline(db: DbConn, a: Account, after: Option<String>) -> ApiResult<Ve
         .unwrap_or_else(|| Utc::today().naive_local());
 
     let events = with_db!(db => {
-        use schema::events::dsl;
+        use schema_ext::timeline::dsl;
 
-        event_and_course_select!()
-            .filter(dsl::owner.eq(a.id).and(dsl::date.ge(after)))
+        dsl::timeline
+            .filter(dsl::course_owner.eq(a.id).and(dsl::date.ge(after)))
             .limit(50)
             .load::<EventAndCourse>(db)
     }?);
@@ -622,10 +602,10 @@ async fn ical(db: DbConn, account: Uuid) -> Result<(ContentType, String), (Statu
     let mut calendar = Calendar::new();
 
     let events: Vec<EventAndCourse> = with_db!(db => {
-        use schema::events::dsl;
+        use schema_ext::timeline::dsl;
 
-        event_and_course_select!()
-            .filter(dsl::owner.eq(account))
+        dsl::timeline
+            .filter(dsl::course_owner.eq(account))
             .load::<EventAndCourse>(db)
     })
     .map_err(|e| (Status::ServiceUnavailable, format!("Database error: {}", e)))?;
