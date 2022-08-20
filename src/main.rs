@@ -4,8 +4,6 @@ extern crate diesel;
 extern crate diesel_migrations;
 #[macro_use]
 extern crate rocket;
-#[macro_use]
-extern crate try_block;
 
 mod api_result;
 mod asset;
@@ -18,6 +16,7 @@ use crate::asset::{Asset, AssetName};
 use crate::model::NewEvent;
 use chrono::{LocalResult, NaiveDate, TimeZone, Utc};
 use diesel::prelude::*;
+use diesel_migrations::{EmbeddedMigrations, MigrationHarness};
 use icalendar::{Calendar, Component};
 use rand::Rng;
 use rocket::fairing::AdHoc;
@@ -33,7 +32,7 @@ use schema::accounts as accounts_table;
 use std::path::PathBuf;
 use uuid::Uuid;
 
-embed_migrations!();
+pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
 const DATE_FORMAT: &str = "%Y-%m-%d";
 
@@ -69,7 +68,7 @@ async fn launch() -> _ {
                     .await
                     .expect("no database available for running migrations");
 
-                conn.run(|c| embedded_migrations::run_with_output(c, &mut std::io::stdout()))
+                conn.run(|c| c.run_pending_migrations(MIGRATIONS).map(|vec| vec.len()))
                     .await
                     .unwrap();
             })
@@ -117,7 +116,7 @@ struct LoginForm {
 const COOKIE_SESSION_NAME: &str = "mdj:session";
 
 #[derive(Debug, Identifiable, Queryable)]
-#[table_name = "accounts_table"]
+#[diesel(table_name = accounts_table)]
 struct Account {
     id: Uuid,
     email: String,
@@ -172,8 +171,8 @@ async fn login(
     db: DbConn,
     form: Form<LoginForm>,
     cookies: &CookieJar<'_>,
-) -> Result<Redirect, (Status, rocket::response::content::Json<&'static str>)> {
-    use rocket::response::content::Json as ContentJson;
+) -> Result<Redirect, (Status, rocket::response::content::RawJson<&'static str>)> {
+    use rocket::response::content::RawJson as ContentJson;
 
     let form = form.into_inner();
     let email = form.email;
@@ -200,7 +199,7 @@ async fn login(
 
             use schema::sessions as sessions_table;
             #[derive(Insertable)]
-            #[table_name = "sessions_table"]
+            #[diesel(table_name = sessions_table)]
             struct Session<'a> {
                 token: &'a str,
                 account: Uuid,
@@ -305,6 +304,15 @@ impl From<(Course, Vec<(NaiveDate, i64, Option<String>)>)> for CourseAndOccurren
     }
 }
 
+macro_rules! try_block_mut {
+    { $($token:tt)* } => {{
+        let mut l = || {
+            $($token)*
+        };
+        l()
+    }}
+}
+
 #[get("/api/courses?<archived>")]
 async fn courses(
     db: DbConn,
@@ -317,7 +325,7 @@ async fn courses(
         use schema::courses::dsl as c_dsl;
         use schema::events::dsl as e_dsl;
 
-        try_block! {
+        try_block_mut! {
             let mut courses: Vec<CourseAndOccurrences> = c_dsl::courses
                 .order_by(c_dsl::j_0.asc())
                 .filter(c_dsl::owner.eq(a.id).and(c_dsl::archived.eq(archived)))
@@ -362,7 +370,7 @@ async fn courses_insert(
 
     use schema::courses as courses_table;
     #[derive(Insertable)]
-    #[table_name = "courses_table"]
+    #[diesel(table_name = courses_table)]
     struct NewCourse {
         owner: Uuid,
         name: String,
@@ -385,7 +393,7 @@ async fn courses_insert(
         use schema::courses::dsl as c_dsl;
         use schema::events::dsl as e_dsl;
 
-        db.transaction::<_, diesel::result::Error, _>(|| {
+        db.transaction::<_, diesel::result::Error, _>(|db| {
             let course = diesel::insert_into(c_dsl::courses).values(course).get_result::<Course>(db)?;
             let dates = NewEvent::from_offsets(
                 &offsets, course.author, course.id, course.j_0, course.j_end, course.cache_key
@@ -414,7 +422,7 @@ async fn courses_update(db: DbConn, a: Account, id: Uuid, json: Json<CourseMod>)
 
         use schema::courses as courses_table;
         #[derive(AsChangeset)]
-        #[table_name = "courses_table"]
+        #[diesel(table_name = courses_table)]
         struct CourseChangeset {
             name: Option<String>,
             description: Option<Option<String>>,
@@ -501,7 +509,7 @@ async fn courses_archive(db: DbConn, a: Account, id: Uuid, archived: Json<bool>)
 
         use schema::courses as courses_table;
         #[derive(AsChangeset)]
-        #[table_name = "courses_table"]
+        #[diesel(table_name = courses_table)]
         struct CourseChangeset {
             archived: bool,
         }
@@ -625,7 +633,7 @@ async fn ical(db: DbConn, account: Uuid) -> Result<(ContentType, String), (Statu
 
         let mut cal_event_ = icalendar::Event::new();
         let cal_event = cal_event_
-            .all_day(date)
+            .all_day(date.naive_utc())
             .summary(&format!("MdJ: {} #{}", event.course_name.as_str(), event.j))
             .add_property("COLOR", mark_color)
             .add_property("URL", "https://mdj.edgar.bzh/");

@@ -6,7 +6,7 @@ use uuid::Uuid;
 diesel::joinable!(crate::schema::events -> crate::schema::courses (course));
 
 #[derive(Insertable)]
-#[table_name = "events_table"]
+#[diesel(table_name = events_table)]
 pub struct NewEvent {
     pub owner: Uuid,
     pub course: Uuid,

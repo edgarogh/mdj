@@ -4,15 +4,14 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-bcrypt = "0.10.1"
-chrono = { version = "0.4.19", features = ["serde"] }
-diesel = { version = "1.4.7", features = ["postgres", "chrono", "uuidv07"] }
-diesel_migrations = "1.4.0"
-icalendar = "0.10.0"
-include_dir = "0.6.1"
-rand = "0.8.4"
-rocket = { version = "0.5.0-rc.1", features = ["json", "serde_json", "uuid", "secrets"] }
-rocket_sync_db_pools = { version = "0.1.0-rc.1", features = ["diesel_postgres_pool"] }
+bcrypt = "0.13.0"
+chrono = { version = "0.4.22", features = ["serde"] }
+diesel = { version = "2.0.0-rc.1", features = ["postgres", "chrono", "uuid"] }
+diesel_migrations = "2.0.0-rc.1"
+icalendar = "0.13.1"
+include_dir = "0.7.2"
+rand = "0.8.5"
+rocket = { version = "0.5.0-rc.2", features = ["json", "serde_json", "uuid", "secrets"] }
+rocket_sync_db_pools = { git = "https://github.com/edgarogh/Rocket", rev = "f84b26935934dd214757ee46fe58d0f76a38f748", features = ["diesel_postgres_pool"] }
 serde = { version = "1.0", features = ["derive"] }
-try-block = "0.1.0"
-uuid = { version = "0.8.2", features = ["v4"] }
+uuid = { version = "1.1", features = ["v4"] }
